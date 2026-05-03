@@ -1,0 +1,16 @@
+stages:
+  - deploy
+
+deploy:
+  stage: deploy
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache openssh-client
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - ssh-keyscan -p $VPS_PORT $VPS_HOST >> ~/.ssh/known_hosts
+  script:
+    - ssh -p $VPS_PORT root@$VPS_HOST "cd /var/www/tvdl/backend && git pull && npm install && pm2 restart tvdl-backend"
+  only:
+    - main
