@@ -1,0 +1,36 @@
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;1,700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  /* === Colors === */
+  --color-blue: #1B3F8B;
+  --color-blue-light: #2550b0;
+  --color-yellow: #F5C000;
+  --color-yellow-dark: #d4a800;
+  --color-dark: #2D2D2D;
+  --color-cream: #F2EAD3;
+  --color-muted: #9CA3AF;
+  --color-white: #FFFFFF;
+
+  /* === Font === */
+  --font-sans: 'Be Vietnam Pro', system-ui, sans-serif;
+
+  /* === Font sizes === */
+  --text-hero: 6rem;      /* 96px - "Chào mừng bạn!" */
+  --text-page: 2.5rem;    /* 40px - page headings */
+  --text-section: 1.5rem; /* 24px - section headings */
+  --text-nav: 0.8125rem;  /* 13px - navbar items */
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: #fff;
+  color: #1B3F8B;
+  -webkit-font-smoothing: antialiased;
+}

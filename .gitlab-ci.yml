@@ -1,0 +1,56 @@
+stages:
+  - deploy
+
+variables:
+  VPS_HOST: "103.166.182.105"
+  VPS_PORT: "24700"
+  VPS_USER: "root"
+
+.ssh_setup: &ssh_setup |
+  which ssh-agent || apt-get install -y openssh-client
+  eval $(ssh-agent -s)
+  echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+  mkdir -p ~/.ssh
+  chmod 700 ~/.ssh
+  ssh-keyscan -p $VPS_PORT $VPS_HOST >> ~/.ssh/known_hosts
+  chmod 644 ~/.ssh/known_hosts
+
+deploy_backend:
+  stage: deploy
+  only:
+    - main
+  script:
+    - *ssh_setup
+    - |
+      ssh -p $VPS_PORT $VPS_USER@$VPS_HOST << 'EOF'
+        cd /var/www/tvdl/backend
+        git pull
+        npm install
+        npx prisma migrate deploy
+        pm2 restart tvdl-backend
+      EOF
+
+seed_db:
+  stage: deploy
+  when: manual
+  only:
+    - main
+  needs: ["deploy_backend"]
+  script:
+    - *ssh_setup
+    - ssh -p $VPS_PORT $VPS_USER@$VPS_HOST "cd /var/www/tvdl/backend && node scripts/seed.js"
+
+deploy_frontend:
+  stage: deploy
+  only:
+    - main
+  needs: ["deploy_backend"]
+  script:
+    - *ssh_setup
+    - |
+      ssh -p $VPS_PORT $VPS_USER@$VPS_HOST << 'EOF'
+        cd /var/www/tvdl/frontend
+        git pull
+        npm install
+        npm run build
+      EOF
