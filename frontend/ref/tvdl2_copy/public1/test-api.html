@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test API</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            background: #f8f9fa;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+        }
+        textarea {
+            height: 100px;
+        }
+    </style>
+</head>
+<body>
+    <h1>API Test Tool</h1>
+    
+    <div class="test-section">
+        <h2>1. Login</h2>
+        <input type="email" id="email" placeholder="Email" value="thedaovan@gmail.com">
+        <input type="password" id="password" placeholder="Password" value="12341234">
+        <button onclick="login()">Login</button>
+        <div id="loginResult" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. Create Post</h2>
+        <input type="text" id="postTitle" placeholder="Post Title" value="Test Post from Browser">
+        <textarea id="postContent" placeholder="Post Content">This is a test post created from browser</textarea>
+        <select id="postCategory">
+            <option value="TRENDING_NOW">Trending Now</option>
+            <option value="SOCIAL_MEDIA">Social Media</option>
+            <option value="GUIDELINES">Guidelines</option>
+        </select>
+        <select id="postStatus">
+            <option value="DRAFT">Draft</option>
+            <option value="PUBLISHED">Published</option>
+        </select>
+        <button onclick="createPost()">Create Post</button>
+        <div id="postResult" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>3. Get Posts</h2>
+        <button onclick="getPosts()">Get My Posts</button>
+        <div id="postsResult" class="result"></div>
+    </div>
+
+    <script>
+        let authToken = '';
+        const BASE_URL = 'http://localhost:3000';
+
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const resultDiv = document.getElementById('loginResult');
+            
+            try {
+                const response = await fetch(`${BASE_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    authToken = data.token;
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `
+                        <strong>✅ Login successful!</strong><br>
+                        User: ${data.user.name} (${data.user.role})<br>
+                        Token: ${authToken.substring(0, 50)}...
+                    `;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `❌ Login failed: ${data.error}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `❌ Error: ${error.message}`;
+            }
+        }
+
+        async function createPost() {
+            if (!authToken) {
+                alert('Please login first!');
+                return;
+            }
+            
+            const title = document.getElementById('postTitle').value;
+            const content = document.getElementById('postContent').value;
+            const category = document.getElementById('postCategory').value;
+            const status = document.getElementById('postStatus').value;
+            const resultDiv = document.getElementById('postResult');
+            
+            try {
+                const response = await fetch(`${BASE_URL}/api/posts`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({
+                        title,
+                        content,
+                        category,
+                        status,
+                        excerpt: content.substring(0, 200) + '...'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `
+                        <strong>✅ Post created successfully!</strong><br>
+                        ID: ${data.data.id}<br>
+                        Title: ${data.data.title}<br>
+                        Status: ${data.data.status}<br>
+                        Created: ${data.data.createdAt}
+                    `;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `❌ Failed to create post: ${data.error}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `❌ Error: ${error.message}`;
+            }
+        }
+
+        async function getPosts() {
+            if (!authToken) {
+                alert('Please login first!');
+                return;
+            }
+            
+            const resultDiv = document.getElementById('postsResult');
+            
+            try {
+                const response = await fetch(`${BASE_URL}/api/posts`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `
+                        <strong>✅ Posts retrieved successfully!</strong><br>
+                        Total: ${data.data.length}<br>
+                        <hr>
+                        ${data.data.map(post => `
+                            <div style="margin: 10px 0; padding: 10px; border: 1px solid #ccc;">
+                                <strong>${post.title}</strong><br>
+                                Status: ${post.status}<br>
+                                Category: ${post.category}<br>
+                                Author: ${post.author.name} (${post.author.role})<br>
+                                Created: ${new Date(post.createdAt).toLocaleString()}
+                            </div>
+                        `).join('')}
+                    `;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `❌ Failed to get posts: ${data.error}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `❌ Error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>

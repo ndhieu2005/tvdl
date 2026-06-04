@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API Documentation</title>
+  <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@5.10.3/swagger-ui.css" />
+  <style>
+    body { 
+      margin: 0; 
+      padding: 20px; 
+      font-family: Arial, sans-serif;
+      background-color: #fafafa;
+    }
+    .swagger-ui .topbar { 
+      display: none !important; 
+    }
+    .swagger-ui .info { 
+      margin: 20px 0; 
+    }
+    .swagger-ui .wrapper { 
+      padding: 0; 
+    }
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+    }
+    .error {
+      text-align: center;
+      padding: 40px;
+      color: #dc3545;
+      background-color: #f8d7da;
+      border: 1px solid #f5c6cb;
+      border-radius: 4px;
+      margin: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div id="swagger-ui">
+    <div class="loading">
+      <div>Loading API Documentation...</div>
+      <div style="margin-top: 10px;">
+        <svg width="40" height="40" viewBox="0 0 40 40">
+          <circle cx="20" cy="20" r="15" fill="none" stroke="#007bff" stroke-width="2" stroke-dasharray="31.416" style="animation: spin 1s linear infinite;">
+            <animate attributeName="stroke-dashoffset" values="0;31.416" dur="1s" repeatCount="indefinite"/>
+          </circle>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/swagger-ui-dist@5.10.3/swagger-ui-bundle.js"></script>
+  <script>
+    async function loadSwaggerUI() {
+      try {
+        // Get spec from parent window or fetch directly
+        let spec = null;
+        
+        if (window.parent && window.parent !== window) {
+          // We're in an iframe, listen for spec from parent
+          window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'swagger-spec') {
+              renderSwagger(event.data.spec);
+            }
+          });
+          
+          // Request spec from parent
+          window.parent.postMessage({ type: 'request-spec' }, '*');
+        } else {
+          // We're not in iframe, fetch directly
+          const response = await fetch('/api/docs');
+          spec = await response.json();
+          renderSwagger(spec);
+        }
+      } catch (error) {
+        console.error('Error loading API spec:', error);
+        document.getElementById('swagger-ui').innerHTML = `
+          <div class="error">
+            <h3>Error Loading API Documentation</h3>
+            <p>${error.message}</p>
+            <button onclick="location.reload()" style="padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">
+              Reload Page
+            </button>
+          </div>
+        `;
+      }
+    }
+
+    function renderSwagger(spec) {
+      try {
+        if (!spec) {
+          throw new Error('No API specification received');
+        }
+
+        if (!window.SwaggerUIBundle) {
+          throw new Error('SwaggerUI not loaded');
+        }
+
+        const ui = SwaggerUIBundle({
+          spec: spec,
+          dom_id: '#swagger-ui',
+          deepLinking: true,
+          presets: [
+            SwaggerUIBundle.presets.apis,
+            SwaggerUIBundle.presets.standalone
+          ],
+          plugins: [
+            SwaggerUIBundle.plugins.DownloadUrl
+          ],
+          tryItOutEnabled: true,
+          displayOperationId: false,
+          displayRequestDuration: true,
+          filter: true,
+          docExpansion: "list",
+          defaultModelsExpandDepth: 2,
+          defaultModelExpandDepth: 2,
+          onComplete: () => {
+            console.log('SwaggerUI loaded successfully');
+            // Notify parent if we're in iframe
+            if (window.parent && window.parent !== window) {
+              window.parent.postMessage({ type: 'swagger-loaded' }, '*');
+            }
+          }
+        });
+      } catch (error) {
+        console.error('Error rendering SwaggerUI:', error);
+        document.getElementById('swagger-ui').innerHTML = `
+          <div class="error">
+            <h3>Error Rendering SwaggerUI</h3>
+            <p>${error.message}</p>
+            <button onclick="location.reload()" style="padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">
+              Reload Page
+            </button>
+          </div>
+        `;
+      }
+    }
+
+    // Start loading when page is ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', loadSwaggerUI);
+    } else {
+      loadSwaggerUI();
+    }
+  </script>
+</body>
+</html>

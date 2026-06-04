@@ -1,0 +1,38 @@
+.cardRegistrationContainer {
+  /* header height = 64px */
+  min-height: calc(100vh - 64px);
+  display: flex;
+  flex-direction: column;
+}
+
+.cardRegistrationContainer form {
+  color: #3F3F3F;
+}
+
+.cardRegistrationContainer input,
+.cardRegistrationContainer select,
+.cardRegistrationContainer textarea {
+  border-color: #3F3F3F;
+  padding-left: 10px;
+}
+
+.label {
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #3F3F3F;
+  white-space: nowrap;
+}
+
+.splitBirthDay {
+  border-bottom: 1px solid #3F3F3F;
+}
+@media (max-width: 639px) {
+  .label {
+    font-size: 12px;
+  }
+
+  .cardRegistrationContainer form input {
+    border-radius: 0;
+  }
+}

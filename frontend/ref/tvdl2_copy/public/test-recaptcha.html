@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test reCAPTCHA</title>
+    <script src="https://www.google.com/recaptcha/api.js?render=6LcsyJ0rAAAAAGM6WEkbd6acAOpyr1YI3LUxt15O"></script>
+</head>
+<body>
+    <h1>Test reCAPTCHA v3</h1>
+    <button onclick="testRecaptcha()">Test reCAPTCHA</button>
+    <div id="result"></div>
+
+    <script>
+        function testRecaptcha() {
+            console.log('Testing reCAPTCHA...');
+            
+            if (!window.grecaptcha) {
+                document.getElementById('result').innerHTML = '❌ reCAPTCHA not loaded';
+                return;
+            }
+
+            grecaptcha.ready(function() {
+                grecaptcha.execute('6LcsyJ0rAAAAAGM6WEkbd6acAOpyr1YI3LUxt15O', {action: 'test'})
+                .then(function(token) {
+                    console.log('✅ Token received:', token);
+                    document.getElementById('result').innerHTML = '✅ reCAPTCHA working! Token: ' + token.substring(0, 20) + '...';
+                })
+                .catch(function(error) {
+                    console.error('❌ reCAPTCHA error:', error);
+                    document.getElementById('result').innerHTML = '❌ reCAPTCHA error: ' + error;
+                });
+            });
+        }
+
+        // Auto test when page loads
+        window.addEventListener('load', function() {
+            setTimeout(testRecaptcha, 2000);
+        });
+    </script>
+</body>
+</html>

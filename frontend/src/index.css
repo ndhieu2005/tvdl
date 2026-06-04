@@ -2,7 +2,7 @@
 @import "tailwindcss";
 
 @theme {
-  /* === Colors === */
+  /* === Colors (CSS variables — also used by var(--color-*) in inline styles) === */
   --color-blue: #1B3F8B;
   --color-blue-light: #2550b0;
   --color-yellow: #F5C000;
@@ -11,26 +11,67 @@
   --color-cream: #F2EAD3;
   --color-muted: #9CA3AF;
   --color-white: #FFFFFF;
+  --color-light-blue: #e7ebf6;
 
   /* === Font === */
   --font-sans: 'Be Vietnam Pro', system-ui, sans-serif;
 
   /* === Font sizes === */
-  --text-hero: 6rem;      /* 96px - "Chào mừng bạn!" */
-  --text-page: 2.5rem;    /* 40px - page headings */
-  --text-section: 1.5rem; /* 24px - section headings */
-  --text-nav: 0.8125rem;  /* 13px - navbar items */
+  --text-hero: 6rem;
+  --text-page: 2.5rem;
+  --text-section: 1.5rem;
+  --text-nav: 0.8125rem;
 }
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+/*
+  Reset inside @layer base so it doesn't win over @layer utilities.
+  Unlayered rules beat layered ones in CSS cascade — putting the * reset
+  outside any layer was silently overriding every Tailwind margin/padding
+  utility (mx-auto, py-5, p-6, gap-*, etc.).
+*/
+@layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: #fff;
+    color: var(--color-blue);
+    -webkit-font-smoothing: antialiased;
+  }
 }
 
-body {
-  font-family: var(--font-sans);
-  background-color: #fff;
-  color: #1B3F8B;
-  -webkit-font-smoothing: antialiased;
+/*
+  Explicit color utilities. Tailwind v4 may not emit bg-blue / text-blue etc.
+  when those names already exist as multi-shade palettes (blue-50…blue-950,
+  yellow-50…yellow-950) in the default theme. Registering them here in
+  @layer utilities gives them the same variant support (hover:, sm:, focus:, …)
+  that Tailwind generates for every utility in this layer.
+*/
+@layer utilities {
+  /* backgrounds */
+  .bg-blue       { background-color: var(--color-blue); }
+  .bg-blue-light { background-color: var(--color-blue-light); }
+  .bg-yellow     { background-color: var(--color-yellow); }
+  .bg-yellow-dark{ background-color: var(--color-yellow-dark); }
+  .bg-dark       { background-color: var(--color-dark); }
+  .bg-cream      { background-color: var(--color-cream); }
+  .bg-light-blue { background-color: var(--color-light-blue); }
+
+  /* text */
+  .text-blue     { color: var(--color-blue); }
+  .text-yellow   { color: var(--color-yellow); }
+  .text-dark     { color: var(--color-dark); }
+  .text-muted    { color: var(--color-muted); }
+  .text-cream    { color: var(--color-cream); }
+
+  /* borders */
+  .border-blue   { border-color: var(--color-blue); }
+  .border-yellow { border-color: var(--color-yellow); }
+
+  /* ring (today-highlight in SchedulePage) */
+  .ring-blue     { --tw-ring-color: var(--color-blue); }
 }

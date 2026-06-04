@@ -1,0 +1,82 @@
+import jwt, { SignOptions } from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
+import { NextRequest } from 'next/server';
+
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
+
+export interface JWTPayload {
+  userId: string;
+  email: string;
+  role: string;
+  iat: number;
+  exp: number;
+}
+
+export const generateToken = (payload: { userId: string; email: string; role: string }): string => {
+  return jwt.sign(payload, JWT_SECRET as string, {
+    expiresIn: JWT_EXPIRES_IN || '7d',
+  } as SignOptions);
+};
+
+export const verifyToken = (token: string): JWTPayload | null => {
+  try {
+    // Debug logs only in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🔐 verifyToken - JWT_SECRET exists:', !!JWT_SECRET);
+      console.log('🔐 verifyToken - Token preview:', token.substring(0, 20) + '...');
+    }
+    
+    const decoded = jwt.verify(token, JWT_SECRET as string) as JWTPayload;
+    
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🔐 verifyToken - Decoded successfully:', decoded);
+    }
+    return decoded;
+  } catch (error) {
+    if (process.env.NODE_ENV === 'development') {
+      console.error('🔐 verifyToken - Error:', error);
+    }
+    return null;
+  }
+};
+
+export const hashPassword = async (password: string): Promise<string> => {
+  const saltRounds = 12;
+  return await bcrypt.hash(password, saltRounds);
+};
+
+export const comparePassword = async (password: string, hashedPassword: string): Promise<boolean> => {
+  return await bcrypt.compare(password, hashedPassword);
+};
+
+export const extractTokenFromHeader = (authHeader: string | null): string | null => {
+  if (!authHeader) return null;
+  
+  const parts = authHeader.split(' ');
+  if (parts.length !== 2 || parts[0] !== 'Bearer') return null;
+  
+  return parts[1];
+};
+
+export const getToken = async (req: NextRequest): Promise<JWTPayload | null> => {
+  try {
+    // Try to get token from Authorization header first
+    const authHeader = req.headers.get('Authorization');
+    let token = extractTokenFromHeader(authHeader);
+    
+    // If no token in header, try to get from cookie
+    if (!token) {
+      token = req.cookies.get('token')?.value || null;
+    }
+    
+    if (!token) {
+      return null;
+    }
+    
+    return verifyToken(token);
+  } catch (error) {
+    console.error('🔐 getToken - Error:', error);
+    return null;
+  }
+};

@@ -1,0 +1,36 @@
+.roomBookingContainer {
+  /* header height = 64px */
+  min-height: calc(100vh - 64px);
+}
+
+.roomBookingContainer form {
+  color: #3F3F3F;
+}
+
+.roomBookingContainer input,
+.roomBookingContainer select,
+.roomBookingContainer textarea {
+  border-color: #3F3F3F;
+}
+
+.label {
+  font-size: 18px;
+  min-width: 200px;
+  display: flex;
+  align-items: center;
+}
+
+.labelInput {
+  align-items: flex-end;
+  margin-bottom: -5px;
+}
+@media (max-width: 639px) {
+  .label {
+    font-size: 12px;
+    min-width: 130px;
+  }
+
+  .roomBookingContainer form input {
+    border-radius: 0;
+  }
+}

@@ -1,0 +1,30 @@
+.eventsContainer {
+  /* header height = 64px */
+  min-height: calc(100vh - 64px);
+}
+
+.cardCustom {
+  border-color: #424241;
+  border-radius: 0;
+}
+
+.calenderCell {
+  background: #F9F3E1;
+  border-color: #424241;
+}
+
+.calenderCell:not(.calenderSelected):hover {
+  background: #f9efd4;
+}
+
+/* bg calendar page: 003D9D opacity 5% = #F2F5FA */
+
+.calenderSelected {
+  background: white;
+}
+
+@media (max-width: 639px) {
+  .cardCustom {
+    border: 0;
+  }
+}

@@ -6,5 +6,6 @@ router.use('/new-books', require('./newBooks'));
 router.use('/events', require('./events'));
 router.use('/suggestions', require('./suggestions'));
 router.use('/age-groups', require('./ageGroups'));
+router.use('/categories', require('./categories'));
 
 module.exports = router;

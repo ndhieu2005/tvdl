@@ -1,0 +1,530 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String         @id @default(cuid())
+  name          String
+  email         String         @unique
+  password      String         @default("temp_password_needs_reset")
+  role          Role           @default(USER)
+  status        Status         @default(PENDING)
+  location      String?
+  bio           String?
+  emailVerified Boolean        @default(false)
+  avatar        String?
+  joinDate      DateTime       @default(now())
+  lastLogin     DateTime       @default(now())
+  posts         Int            @default(0)
+  likes         Int            @default(0)
+  comments      Int            @default(0)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  apiKeys       ApiKey[]
+  uploadedMedia MediaFile[]
+  authoredPosts Post[]
+  sessionTokens SessionToken[]
+
+  @@map("users")
+}
+
+model Category {
+  id              String         @id @default(cuid())
+  name            String         @unique
+  slug            String         @unique
+  description     String?
+  color           String         @default("#8B5CF6")
+  status          CategoryStatus @default(ACTIVE)
+  metaTitle       String?
+  metaDescription String?
+  featured        Boolean        @default(false)
+  sortOrder       Int            @default(0)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  posts           Post[]
+
+  @@map("categories")
+}
+
+model Tag {
+  id              String    @id @default(cuid())
+  name            String    @unique
+  slug            String    @unique
+  description     String?
+  color           String?   @default("#8B5CF6")
+  featured        Boolean   @default(false)
+  status          TagStatus @default(ACTIVE)
+  metaTitle       String?
+  metaDescription String?
+  postCount       Int       @default(0)
+  usageCount      Int       @default(0)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  createdBy       String
+  posts           PostTag[]
+
+  @@map("tags")
+}
+
+model PostTag {
+  id        String   @id @default(cuid())
+  postId    String
+  tagId     String
+  createdAt DateTime @default(now())
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag       Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, tagId])
+  @@index([tagId], map: "post_tags_tagId_fkey")
+  @@map("post_tags")
+}
+
+model Post {
+  id               String           @id @default(cuid())
+  title            String
+  slug             String           @unique
+  content          String           @db.LongText
+  excerpt          String?          @db.Text
+  featuredImage    String?
+  categoryId       String
+  status           PostStatus       @default(DRAFT)
+  tags             String?
+  authorId         String
+  createdBy        String
+  publishDate      DateTime?
+  viewCount        Int              @default(0)
+  likeCount        Int              @default(0)
+  shareCount       Int              @default(0)
+  commentCount     Int              @default(0)
+  seoTitle         String?
+  seoDescription   String?          @db.Text
+  seoKeywords      String?
+  videoUrl         String?
+  videoThumbnail   String?
+  videoPlatform    String?
+  videoTitle       String?
+  videoDescription String?          @db.Text
+  videoMetadata    Json?
+  readingTime      Int?
+  priorityScore    Float            @default(0)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  postTags         PostTag[]
+  author           User             @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  category         Category         @relation(fields: [categoryId], references: [id])
+  readingHistory   ReadingHistory[]
+
+  @@index([authorId], map: "posts_authorId_fkey")
+  @@index([categoryId], map: "posts_categoryId_fkey")
+  @@map("posts")
+}
+
+model ReadingHistory {
+  id          String    @id @default(cuid())
+  postId      String
+  sessionId   String
+  userId      String?
+  timeSpent   Int       @default(0)
+  scrollDepth Float     @default(0)
+  isCompleted Boolean   @default(false)
+  completedAt DateTime?
+  userAgent   String?
+  referrer    String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  post        Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, sessionId])
+  @@map("reading_history")
+}
+
+model MediaFile {
+  id           String    @id @default(cuid())
+  name         String
+  originalName String
+  objectName   String    @unique
+  type         MediaType
+  mimeType     String
+  size         Int
+  dimensions   Json?
+  url          String?
+  metadata     Json?
+  uploadedBy   String
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  uploader     User      @relation(fields: [uploadedBy], references: [id], onDelete: Cascade)
+
+  @@index([uploadedBy], map: "media_files_uploadedBy_fkey")
+  @@map("media_files")
+}
+
+model SecuritySettings {
+  id                     String   @id @default(cuid())
+  maxFailedLogins        Int      @default(5)
+  sessionTimeout         Int      @default(1440)
+  minPasswordLength      Int      @default(8)
+  twoFactorEnabled       Boolean  @default(false)
+  captchaEnabled         Boolean  @default(false)
+  captchaProvider        String   @default("recaptcha")
+  captchaThreshold       Float    @default(0.5)
+  ipBlockingEnabled      Boolean  @default(false)
+  ipBlockDuration        Int      @default(60)
+  ipWhitelist            String?
+  ipBlacklist            String?
+  spamFilterEnabled      Boolean  @default(false)
+  maxRequestsPerMinute   Int      @default(60)
+  maxRequestsPerHour     Int      @default(1000)
+  strongPasswordRequired Boolean  @default(true)
+  requireUppercase       Boolean  @default(true)
+  requireLowercase       Boolean  @default(true)
+  requireNumbers         Boolean  @default(true)
+  requireSpecialChars    Boolean  @default(true)
+  passwordExpiryDays     Int      @default(90)
+  updatedBy              String
+  updatedAt              DateTime @updatedAt
+  createdAt              DateTime @default(now())
+
+  @@map("security_settings")
+}
+
+model LoginAttempt {
+  id            String   @id @default(cuid())
+  email         String?
+  ipAddress     String
+  userAgent     String?
+  success       Boolean
+  failureReason String?
+  timestamp     DateTime @default(now())
+
+  @@map("login_attempts")
+}
+
+model BlockedIP {
+  id        String   @id @default(cuid())
+  ipAddress String   @unique
+  reason    String
+  blockedAt DateTime @default(now())
+  expiresAt DateTime
+  isActive  Boolean  @default(true)
+
+  @@map("blocked_ips")
+}
+
+model SessionToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  ipAddress String
+  userAgent String?
+  expiresAt DateTime
+  lastUsed  DateTime @default(now())
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "session_tokens_userId_fkey")
+  @@map("session_tokens")
+}
+
+model ApiKey {
+  id          String             @id @default(cuid())
+  name        String
+  keyHash     String             @unique
+  userId      String
+  lastUsed    DateTime?
+  usageCount  Int                @default(0)
+  ipWhitelist String?
+  isActive    Boolean            @default(true)
+  expiresAt   DateTime?
+  rateLimit   Int                @default(1000)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  permissions ApiKeyPermission[]
+  user        User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "api_keys_userId_fkey")
+  @@map("api_keys")
+}
+
+model ApiKeyPermission {
+  id        String   @id @default(cuid())
+  apiKeyId  String
+  resource  String
+  action    String
+  createdAt DateTime @default(now())
+  apiKey    ApiKey   @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
+
+  @@unique([apiKeyId, resource, action])
+  @@map("api_key_permissions")
+}
+
+model ApiUsageLog {
+  id           String   @id @default(cuid())
+  apiKeyId     String
+  endpoint     String
+  method       String
+  statusCode   Int
+  ipAddress    String
+  userAgent    String?
+  responseTime Int
+  createdAt    DateTime @default(now())
+
+  @@map("api_usage_logs")
+}
+
+model Settings {
+  id                     String   @id @default(cuid())
+  siteName               String   @default("ViralPeek")
+  siteDescription        String   @default("Your ultimate destination for TikTok trends and viral content")
+  siteUrl                String   @default("https://viralpeek.com")
+  adminEmail             String   @default("admin@trendiefox.com")
+  businessAddress        String   @default("Ho Chi Minh City, Vietnam")
+  timezone               String   @default("Asia/Ho_Chi_Minh")
+  language               String   @default("vi")
+  dateFormat             String   @default("dd/MM/yyyy")
+  enableRegistration     Boolean  @default(true)
+  enableComments         Boolean  @default(true)
+  enableNewsletters      Boolean  @default(true)
+  homePageTitle          String   @default("ViralPeek")
+  homePageSubtitle       String   @default("Your ultimate destination for TikTok trends and viral content")
+  metaTitle              String   @default("ViralPeek - TikTok Trends & Viral Content")
+  metaDescription        String   @default("Discover the latest TikTok trends, viral videos, and social media content. Stay updated with ViralPeek.")
+  keywords               String   @default("tiktok, viral, trends, social media, content, videos")
+  ogImage                String   @default("/images/og-image.svg")
+  googleAnalyticsId      String   @default("")
+  googleSearchConsole    String   @default("")
+  googleAdsenseId        String   @default("")
+  enableSitemap          Boolean  @default(true)
+  enableRobots           Boolean  @default(true)
+  facebookUrl            String   @default("")
+  instagramUrl           String   @default("")
+  tiktokUrl              String   @default("")
+  youtubeUrl             String   @default("")
+  twitterUrl             String   @default("")
+  enableSocialLogin      Boolean  @default(true)
+  enableSocialSharing    Boolean  @default(true)
+  postsPerPage           Int      @default(12)
+  enableAutoSave         Boolean  @default(true)
+  allowImageUpload       Boolean  @default(true)
+  allowVideoUpload       Boolean  @default(true)
+  maxImageSize           Int      @default(5)
+  maxVideoSize           Int      @default(100)
+  allowedImageTypes      String   @default("jpg,jpeg,png,gif,webp")
+  allowedVideoTypes      String   @default("mp4,mov,avi,webm")
+  primaryColor           String   @default("#7c3aed")
+  secondaryColor         String   @default("#06b6d4")
+  darkMode               Boolean  @default(false)
+  enableCustomCSS        Boolean  @default(false)
+  customCSS              String   @default("")
+  logo                   String   @default("/images/logo.svg")
+  favicon                String   @default("/favicon.ico")
+  smtpHost               String   @default("smtp.gmail.com")
+  smtpPort               Int      @default(587)
+  smtpUser               String   @default("")
+  smtpPassword           String   @default("")
+  fromEmail              String   @default("noreply@trendiefox.com")
+  fromName               String   @default("ViralPeek")
+  enableSsl              Boolean  @default(true)
+  enableApi              Boolean  @default(true)
+  globalRateLimit        Int      @default(1000)
+  enableCors             Boolean  @default(true)
+  corsOrigins            String   @default("https://viralpeek.com")
+  enableApiKeyManagement Boolean  @default(true)
+  updatedBy              String
+  updatedAt              DateTime @updatedAt
+  createdAt              DateTime @default(now())
+
+  @@map("settings")
+}
+
+model CardRegistration {
+  id              String     @id @default(cuid())
+  fullName        String
+  dateOfBirth     String
+  age             Int
+  gender          String
+  idNumber        String     @unique
+  phone           String?
+  parentPhone     String?
+  email           String
+  address         String
+  occupation      String?
+  workplace       String?
+  purpose         String?
+  agreeTerms      Boolean    @default(true)
+  agreeNewsletter Boolean    @default(false)
+  isUnder15       Boolean    @default(false)
+  status          CardStatus @default(PENDING)
+  cardNumber      String?
+  issuedDate      DateTime?
+  expiryDate      DateTime?
+  notes           String?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  updatedBy       String?
+
+  @@map("card_registrations")
+}
+
+model RoomBooking {
+  id              String        @id @default(cuid())
+  fullName        String
+  phone           String
+  email           String
+  cardNumber      String
+  roomType        String
+  bookingDate     DateTime
+  timeSlot        String
+  startTime       String
+  endTime         String
+  duration        Int
+  participants    Int
+  purpose         String
+  specialRequests String?
+  status          BookingStatus @default(PENDING)
+  notes           String?
+  rejectionReason String?
+  agreeTerms      Boolean       @default(true)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  updatedBy       String?
+
+  @@map("room_bookings")
+}
+
+model Book {
+  id                String     @id @default(cuid())
+  title             String
+  author            String
+  description       String?
+  coverImage        String?
+  bookCode          String     @unique
+  isbn              String?    @unique
+  publisher         String?
+  publishYear       Int?
+  genre             String?
+  pages             Int?
+  quantity          Int        @default(1)
+  availableQuantity Int        @default(1)
+  location          String?
+  status            BookStatus @default(AVAILABLE)
+  slug              String     @unique
+  metaTitle         String?
+  metaDescription   String?
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  createdBy         String
+  updatedBy         String?
+
+  @@map("books")
+}
+
+model Event {
+  id                   String      @id @default(cuid())
+  title                String
+  description          String?
+  location             String
+  eventDate            DateTime
+  startTime            String
+  endTime              String?
+  duration             Int?
+  maxParticipants      Int?
+  currentParticipants  Int         @default(0)
+  registrationRequired Boolean     @default(false)
+  status               EventStatus @default(DRAFT)
+  featured             Boolean     @default(false)
+  featuredImage        String?
+  gallery              String?
+  color                String      @default("#033b93") // Default blue color
+  slug                 String      @unique
+  metaTitle            String?
+  metaDescription      String?
+  contactPerson        String?
+  contactPhone         String?
+  contactEmail         String?
+  notes                String?
+  publicNotes          String?
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
+  createdBy            String
+  updatedBy            String?
+
+  @@map("events")
+}
+
+enum Role {
+  ADMIN
+  EDITOR
+  USER
+}
+
+enum Status {
+  ACTIVE
+  INACTIVE
+  PENDING
+}
+
+enum CategoryStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum TagStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+  SCHEDULED
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+  AUDIO
+  DOCUMENT
+}
+
+enum CardStatus {
+  PENDING
+  APPROVED
+  ISSUED
+  REJECTED
+  LOST
+  REVOKED
+  EXPIRED
+}
+
+enum BookingStatus {
+  PENDING
+  APPROVED
+  CONFIRMED
+  REJECTED
+  CANCELLED
+  COMPLETED
+  NO_SHOW
+}
+
+enum BookStatus {
+  AVAILABLE
+  UNAVAILABLE
+  MAINTENANCE
+  LOST
+  DAMAGED
+}
+
+enum EventStatus {
+  DRAFT
+  PUBLISHED
+  SCHEDULED
+  CANCELLED
+  COMPLETED
+}

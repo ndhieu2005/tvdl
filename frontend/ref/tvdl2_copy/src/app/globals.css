@@ -1,0 +1,729 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+    --radius: 0.5rem;
+  }
+ 
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+  }
+
+  * {
+    border-color: hsl(var(--border));
+  }
+  
+  body {
+    background-color: white;
+    color: rgb(17 24 39); /* gray-900 */
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer utilities {
+  .line-clamp-1 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+  }
+  
+  .line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+  
+  .line-clamp-3 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+}
+
+/* AdSense responsive styles */
+@media (max-width: 768px) {
+  .adsense-banner {
+    width: 320px;
+    height: 50px;
+  }
+}
+
+@media (min-width: 769px) {
+  .adsense-banner {
+    width: 728px;
+    height: 90px;
+  }
+}
+
+.adsense-rectangle {
+  width: 300px;
+  height: 250px;
+}
+
+.adsense-skyscraper {
+  width: 300px;
+  height: 600px;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Prose styling for post content */
+.prose {
+  @apply text-gray-800 max-w-none;
+}
+
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4,
+.prose h5,
+.prose h6 {
+  @apply text-gray-900 font-bold;
+}
+
+.prose h2 {
+  @apply text-2xl mt-8 mb-4;
+}
+
+.prose h3 {
+  @apply text-xl mt-6 mb-3;
+}
+
+.prose p {
+  @apply mb-4 leading-relaxed;
+}
+
+.prose ul,
+.prose ol {
+  @apply mb-4 pl-6;
+}
+
+.prose li {
+  @apply mb-2;
+}
+
+.prose a {
+  @apply text-purple-600 hover:text-purple-800 underline;
+}
+
+.prose blockquote {
+  @apply border-l-4 border-purple-200 pl-4 italic text-gray-600 my-4;
+}
+
+.prose code {
+  @apply bg-gray-100 px-2 py-1 rounded text-sm;
+}
+
+.prose pre {
+  @apply bg-gray-900 text-white p-4 rounded-lg overflow-x-auto my-4;
+}
+
+/* TikTok embed styling */
+.tiktok-embed {
+  @apply mx-auto;
+}
+
+/* Loading animation */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Fade in animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+/* Sticky Table Column with Shadow Effect */
+.sticky-column {
+  position: sticky;
+  right: 0;
+  z-index: 10;
+  background: white;
+  box-shadow: -8px 0 8px -8px rgba(0, 0, 0, 0.1);
+}
+
+.sticky-column-header {
+  position: sticky;
+  right: 0;
+  z-index: 20;
+  background: rgb(249 250 251); /* bg-gray-50 */
+  box-shadow: -8px 0 8px -8px rgba(0, 0, 0, 0.1);
+}
+
+/* Table responsive scrolling */
+.table-container {
+  position: relative;
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.table-container::-webkit-scrollbar {
+  height: 6px;
+}
+
+.table-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.table-container::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Hover effects for table rows */
+.table-row-hover:hover .sticky-column {
+  background-color: rgb(249 250 251); /* bg-gray-50 */
+}
+
+/* Mobile-specific image fixes */
+@media (max-width: 768px) {
+  /* Fix for image containers on mobile */
+  .relative img {
+    max-width: 100%;
+    height: auto;
+    object-fit: cover;
+  }
+  
+  /* Ensure image containers don't overflow on mobile */
+  .relative {
+    max-width: 100%;
+    overflow: hidden;
+  }
+  
+  /* Fix for fill images on mobile */
+  .relative [data-fill="true"] {
+    object-fit: cover;
+    width: 100% !important;
+    height: 100% !important;
+  }
+  
+  /* Mobile image container fixes */
+  .mobile-image-fix.is-mobile .relative {
+    contain: layout;
+  }
+  
+  .mobile-image-fix.is-mobile img {
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+  
+  /* Fix for Next.js Image component on mobile */
+  .mobile-image-fix.is-mobile img[data-nimg] {
+    object-fit: cover !important;
+    width: 100% !important;
+    height: 100% !important;
+  }
+}
+
+/* Responsive image improvements */
+img[data-nimg="fill"] {
+  object-fit: cover;
+  width: 100%;
+  height: 100%;
+}
+
+img[data-nimg="responsive"] {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Fix for iOS Safari image rendering */
+@supports (-webkit-touch-callout: none) {
+  img {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+}
+
+/* Fix for Android Chrome image rendering */
+@media screen and (-webkit-min-device-pixel-ratio: 1) {
+  img {
+    image-rendering: optimizeSpeed;
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: optimize-contrast;
+    -ms-interpolation-mode: nearest-neighbor;
+  }
+}
+
+/* WebP Safe Container Styles - REMOVED
+ * These styles were causing images to be hidden on mobile responsive mode
+ * Modern browsers (iOS 14+, Android 5+) support WebP natively
+ * No need for complex CSS fallbacks
+ */
+
+/* Mobile image optimizations - simplified */
+@media (max-width: 768px) {
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+/* Enhanced Image Optimization Styles */
+.smart-image {
+  @apply transition-opacity duration-300;
+}
+
+/* Custom Modal Overlay with Blur */
+.modal-overlay-blur {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  background-color: rgba(255, 255, 255, 0.1);
+  animation: fadeIn 0.2s ease-out;
+}
+
+@supports not (backdrop-filter: blur(8px)) {
+  .modal-overlay-blur {
+    background-color: rgba(0, 0, 0, 0.3);
+  }
+}
+
+.smart-image.loading {
+  @apply opacity-0;
+}
+
+.smart-image.loaded {
+  @apply opacity-100;
+}
+
+/* Content images optimization */
+.post-content img {
+  @apply max-w-full h-auto rounded-lg shadow-sm;
+  margin: 1rem auto;
+  display: block;
+}
+
+.post-content img[loading="lazy"] {
+  @apply transition-opacity duration-300;
+}
+
+/* Responsive image containers */
+.image-container {
+  @apply relative overflow-hidden;
+}
+
+.image-container.aspect-video {
+  aspect-ratio: 16 / 9;
+}
+
+.image-container.aspect-square {
+  aspect-ratio: 1 / 1;
+}
+
+/* Mobile Modal Optimizations */
+@media (max-width: 640px) {
+  /* Ensure modal doesn't get cut off on small screens */
+  [data-radix-dialog-content] {
+    margin: 16px !important;
+    max-height: calc(100vh - 32px) !important;
+    width: calc(100vw - 32px) !important;
+    max-width: calc(100vw - 32px) !important;
+    transform: translate(-50%, -50%) !important;
+    top: 50% !important;
+    left: 50% !important;
+  }
+  
+  /* Prevent zoom on input focus for iOS */
+  input[type="email"],
+  input[type="password"],
+  input[type="text"] {
+    font-size: 16px !important;
+    -webkit-appearance: none;
+    border-radius: 8px;
+  }
+  
+  /* Better touch targets for mobile */
+  button {
+    min-height: 44px;
+    min-width: 44px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* Improve modal backdrop on mobile */
+  [data-radix-dialog-overlay] {
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+  
+  /* Force full screen modal on mobile */
+  .mobile-modal-fullscreen[data-radix-dialog-content] {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    max-width: none !important;
+    max-height: none !important;
+    transform: none !important;
+    border-radius: 0 !important;
+    border: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    z-index: 9999 !important;
+  }
+}
+
+/* Prevent body scroll when modal is open */
+.modal-open {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+}
+
+/* Enhanced mobile form styling */
+@media (max-width: 640px) {
+  .auth-form input {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    border-radius: 8px;
+    /* Prevent zoom on focus for iOS */
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+  }
+  
+  .auth-form button {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    border-radius: 8px;
+    /* Remove tap highlight */
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+  
+  /* Simple mobile modal fixes */
+  .mobile-modal-fullscreen {
+    height: 100vh !important;
+    height: 100dvh !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Fix close button position on mobile */
+  .mobile-modal-fullscreen [data-radix-dialog-close] {
+    position: absolute !important;
+    top: 1rem !important;
+    right: 1rem !important;
+    z-index: 10 !important;
+  }
+  
+  /* iOS specific fixes */
+  @supports (-webkit-touch-callout: none) {
+    .mobile-modal-fullscreen[data-radix-dialog-content] {
+      height: -webkit-fill-available !important;
+    }
+  }
+  
+  /* Prevent background scroll on mobile when modal is open */
+  body.modal-open {
+    position: fixed !important;
+    width: 100% !important;
+    height: 100% !important;
+    overflow: hidden !important;
+  }
+  
+  /* Smooth transitions for mobile */
+  .auth-form input:focus {
+    transition: all 0.2s ease-in-out;
+  }
+}
+
+.image-container.aspect-4-3 {
+  aspect-ratio: 4 / 3;
+}
+
+/* Image loading states */
+.image-loading {
+  @apply bg-gray-200 animate-pulse;
+}
+
+.image-error {
+  @apply bg-gray-100 flex items-center justify-center text-gray-400;
+}
+
+/* Optimized image hover effects */
+.image-hover {
+  @apply transition-transform duration-300 hover:scale-105;
+}
+
+/* Critical image preloading */
+.critical-image {
+  @apply opacity-0;
+  animation: fadeInImage 0.3s ease-in-out forwards;
+}
+
+@keyframes fadeInImage {
+  to {
+    opacity: 1;
+  }
+}
+
+/* WebP support detection */
+.webp .webp-image {
+  display: block;
+}
+
+.no-webp .webp-image {
+  display: none;
+}
+
+.webp .fallback-image {
+  display: none;
+}
+
+.no-webp .fallback-image {
+  display: block;
+}
+
+/* Mobile Touch Improvements */
+
+/* Improve touch targets for mobile */
+@media (max-width: 768px) {
+  /* Ensure touch targets are at least 44px */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Remove tap highlight on iOS */
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* Improve button touch response */
+  button, [role="button"] {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* Improve dropdown menu positioning on mobile */
+  [data-radix-popper-content-wrapper] {
+    z-index: 9999 !important;
+  }
+  
+  /* Ensure dropdown menus are properly positioned */
+  .mobile-dropdown {
+    position: fixed !important;
+    z-index: 9999 !important;
+  }
+  
+  /* Improve touch scrolling */
+  .mobile-scroll {
+    -webkit-overflow-scrolling: touch;
+    overflow-scrolling: touch;
+  }
+  
+  /* Prevent zoom on input focus */
+  input, select, textarea {
+    font-size: 16px;
+  }
+  
+  /* Improve active states for touch */
+  .touch-active:active {
+    transform: scale(0.98);
+    transition: transform 0.1s ease;
+  }
+}
+
+/* Specific improvements for user menu */
+.mobile-user-menu {
+  /* Ensure proper stacking */
+  z-index: 9999;
+  
+  /* Improve shadow for better visibility */
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  
+  /* Ensure it's above other elements */
+  position: fixed;
+  
+  /* Add smooth animation */
+  animation: slideInFromTop 0.2s ease-out;
+  transform-origin: top right;
+}
+
+@keyframes slideInFromTop {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.mobile-user-menu button {
+  /* Improve touch targets */
+  min-height: 44px;
+  
+  /* Better touch feedback */
+  transition: background-color 0.15s ease, transform 0.1s ease;
+}
+
+.mobile-user-menu button:active {
+  transform: scale(0.98);
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Avatar button improvements */
+.mobile-avatar-button {
+  /* Ensure proper touch target size */
+  min-height: 44px;
+  min-width: 44px;
+  
+  /* Center the avatar within the larger touch target */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  /* Improve touch responsiveness */
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  
+  /* Better visual feedback */
+  transition: all 0.15s ease;
+}
+
+.mobile-avatar-button:active {
+  transform: scale(0.95);
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Ensure the avatar inside is not selectable */
+.mobile-avatar-button * {
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Additional mobile fixes */
+@media (max-width: 768px) {
+  .mobile-user-menu {
+    right: 8px !important;
+    top: 64px !important;
+    width: calc(100vw - 16px) !important;
+    max-width: 280px !important;
+  }
+  
+  /* Ensure buttons are large enough for touch */
+  .mobile-avatar-button {
+    min-height: 48px !important;
+    min-width: 48px !important;
+  }
+  
+  /* Improve touch targets in dropdown */
+  .mobile-user-menu button {
+    min-height: 48px !important;
+    padding: 12px 16px !important;
+  }
+}
+
+/* Prevent text selection on touch */
+.no-select {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}

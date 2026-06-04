@@ -1,136 +1,257 @@
-import { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { api } from '../../lib/api';
 
-const DAY_LABELS = ['THỨ 2', 'THỨ 3', 'THỨ 4', 'THỨ 5', 'THỨ 6', 'THỨ 7', 'CHỦ NHẬT'];
+const MONTH_NAMES = [
+  'Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
+  'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12',
+];
+const WEEKDAY_LABELS = ['THỨ 2', 'THỨ 3', 'THỨ 4', 'THỨ 5', 'THỨ 6', 'THỨ 7', 'CHỦ NHẬT'];
 
-function buildCalendarDays(year, month) {
-  const firstDay = new Date(year, month - 1, 1).getDay(); // 0=Sun
-  const totalDays = new Date(year, month, 0).getDate();
-  // Shift so Monday=0
-  const startOffset = firstDay === 0 ? 6 : firstDay - 1;
-  const cells = Array(startOffset).fill(null);
-  for (let d = 1; d <= totalDays; d++) cells.push(d);
-  while (cells.length % 7 !== 0) cells.push(null);
-  return cells;
+const TODAY = new Date();
+
+function ShortArrowRightIcon({ className }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12.69 8.88" fill="currentColor" className={className}>
+      <path d="m12.69,4.48c0-.1-.02-.21-.12-.3-.17-.17-.33-.34-.5-.5-1.17-1.19-2.33-2.37-3.5-3.56-.37-.38-.95.2-.58.58.17.17.33.34.5.5.94.95,1.87,1.9,2.81,2.85H.4c-.53,0-.53.82,0,.82h10.88c-1.11,1.1-2.23,2.2-3.35,3.3-.38.37.2.95.58.58.17-.17.34-.34.51-.51,1.18-1.17,2.36-2.33,3.54-3.49.07-.07.11-.16.11-.25,0-.01,0-.02,0-.03Z"/>
+    </svg>
+  );
 }
 
 export default function SchedulePage() {
-  const now = new Date();
-  const [year, setYear] = useState(now.getFullYear());
-  const [month, setMonth] = useState(now.getMonth() + 1);
+  const [month, setMonth] = useState(TODAY.getMonth()); // 0-indexed
+  const [year, setYear] = useState(TODAY.getFullYear());
   const [schedules, setSchedules] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(null); // 'yyyy-MM-dd'
+  const calendarRef = useRef(null);
+  const [calendarHeight, setCalendarHeight] = useState(0);
+
+  useEffect(() => {
+    if (calendarRef.current) {
+      setCalendarHeight(calendarRef.current.offsetHeight);
+    }
+  }, [schedules]);
 
   useEffect(() => {
     setLoading(true);
-    api.get(`/schedules?month=${month}&year=${year}`)
+    api.get(`/schedules?month=${month + 1}&year=${year}`)
       .then((r) => setSchedules(r.data.data || []))
       .catch(() => setSchedules([]))
       .finally(() => setLoading(false));
   }, [month, year]);
 
   function prevMonth() {
-    if (month === 1) { setMonth(12); setYear(y => y - 1); }
-    else setMonth(m => m - 1);
+    if (month === 0) { setMonth(11); setYear((y) => y - 1); }
+    else setMonth((m) => m - 1);
+    setSelectedDate(null);
   }
+
   function nextMonth() {
-    if (month === 12) { setMonth(1); setYear(y => y + 1); }
-    else setMonth(m => m + 1);
+    if (month === 11) { setMonth(0); setYear((y) => y + 1); }
+    else setMonth((m) => m + 1);
+    setSelectedDate(null);
   }
 
-  const cells = buildCalendarDays(year, month);
+  function getMonthName(idx) {
+    if (idx < 0) return MONTH_NAMES[11];
+    if (idx > 11) return MONTH_NAMES[0];
+    return MONTH_NAMES[idx];
+  }
 
-  const schedulesByDay = {};
-  schedules.forEach((s) => {
-    const d = new Date(s.date).getDate();
-    if (!schedulesByDay[d]) schedulesByDay[d] = [];
-    schedulesByDay[d].push(s);
-  });
+  const calendarDays = useMemo(() => {
+    const days = [];
+    const firstDay = new Date(year, month, 1).getDay(); // 0 = Sunday
+    // Shift to Monday-start grid
+    if (firstDay === 0) {
+      for (let i = 0; i < 6; i++) days.push(null);
+    } else {
+      for (let i = 0; i < firstDay - 1; i++) days.push(null);
+    }
+    const totalDays = new Date(year, month + 1, 0).getDate();
+    for (let d = 1; d <= totalDays; d++) days.push(d);
+    return days;
+  }, [year, month]);
+
+  const schedulesByDay = useMemo(() => {
+    const map = {};
+    schedules.forEach((s) => {
+      const d = new Date(s.date).getDate();
+      if (!map[d]) map[d] = [];
+      map[d].push(s);
+    });
+    return map;
+  }, [schedules]);
+
+  function getDateString(day) {
+    return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  }
+
+  function handleDayClick(day, isSelected) {
+    if (!day) return;
+    setSelectedDate(isSelected ? null : getDateString(day));
+  }
+
+  const selectedDaySchedules = useMemo(() => {
+    if (!selectedDate) return null;
+    const day = parseInt(selectedDate.split('-')[2], 10);
+    return schedulesByDay[day] || [];
+  }, [selectedDate, schedulesByDay]);
+
+  const displaySchedules = selectedDate ? selectedDaySchedules : schedules;
+
+  const displayTitle = selectedDate
+    ? `Lịch ngày ${selectedDate.split('-').reverse().join('/')}`
+    : 'Lịch cả tháng';
 
   return (
-    <div className="px-8 py-10 max-w-6xl mx-auto">
-      <h1 className="text-page font-bold text-blue mb-8 italic">Lịch hoạt động</h1>
+    <div className="min-h-[calc(100vh-64px)] py-5 sm:py-12">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <h1 className="text-3xl sm:text-5xl font-semibold text-blue mb-6 sm:mb-20 pl-5 sm:pl-10">
+          Lịch hoạt động
+        </h1>
 
-      <div className="flex gap-6">
-        {/* Calendar */}
-        <div className="flex-1 border border-gray-200 rounded-xl p-6">
-          {/* Month header */}
-          <div className="flex items-center justify-between mb-6">
-            <span className="font-bold text-xl text-blue">
-              Tháng {month} | {year}
-            </span>
-            <div className="flex gap-4 text-sm font-semibold">
-              <button onClick={prevMonth} className="flex items-center gap-1 text-blue hover:text-yellow transition-colors">
-                <ChevronLeft size={16} /> Tháng {month === 1 ? 12 : month - 1}
-              </button>
-              <button onClick={nextMonth} className="flex items-center gap-1 text-blue hover:text-yellow transition-colors">
-                Tháng {month === 12 ? 1 : month + 1} <ChevronRight size={16} />
-              </button>
-            </div>
-          </div>
-
-          {/* Day headers */}
-          <div className="grid grid-cols-7 mb-2">
-            {DAY_LABELS.map((d, i) => (
-              <div key={d} className={`text-center text-xs font-semibold py-1 ${i === 6 ? 'text-yellow' : 'text-blue'}`}>
-                {d}
-              </div>
-            ))}
-          </div>
-
-          {/* Cells */}
-          <div className="grid grid-cols-7 gap-1">
-            {cells.map((day, i) => {
-              const daySchedules = day ? (schedulesByDay[day] || []) : [];
-              const isToday = day && year === now.getFullYear() && month === now.getMonth() + 1 && day === now.getDate();
-              return (
-                <div
-                  key={i}
-                  className={`min-h-[72px] rounded-lg p-1.5 ${
-                    day ? 'bg-cream' : 'bg-transparent'
-                  } ${isToday ? 'ring-2 ring-blue' : ''}`}
-                >
-                  {day && (
-                    <>
-                      <span className={`text-xs font-semibold ${i % 7 === 6 ? 'text-yellow' : 'text-blue'}`}>{day}</span>
-                      <div className="mt-1 space-y-0.5">
-                        {daySchedules.map((s) => (
-                          <div
-                            key={s.id}
-                            className="text-[9px] leading-tight px-1 py-0.5 rounded truncate text-white font-medium"
-                            style={{ backgroundColor: s.location?.color_code || '#1B3F8B' }}
-                            title={`${s.shift} ${s.time_frame} — ${s.location?.name || s.custom_location_name}`}
-                          >
-                            {s.time_frame}
-                          </div>
-                        ))}
-                      </div>
-                    </>
-                  )}
+        <div className="flex flex-col sm:flex-row gap-8">
+          {/* Calendar */}
+          <div className="flex-[2] h-fit" ref={calendarRef}>
+            <div className="border-0 sm:border sm:border-[#424241]">
+              {/* Month header */}
+              <div className="p-0 sm:p-6 mb-5 sm:mb-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-base sm:text-2xl font-medium text-[#2B2B2B]">
+                    {MONTH_NAMES[month]} | {year}
+                  </span>
+                  <div className="flex justify-between gap-4 w-40 sm:w-52 select-none font-light">
+                    <button
+                      className="flex items-center gap-1 cursor-pointer hover:text-blue"
+                      onClick={prevMonth}
+                    >
+                      <ShortArrowRightIcon className="h-1.5 sm:h-2 w-auto rotate-180 text-blue" />
+                      <span className="text-xs font-semibold sm:text-base pb-0.5 border-b border-blue whitespace-nowrap">
+                        {getMonthName(month - 1)}
+                      </span>
+                    </button>
+                    <button
+                      className="flex items-center gap-1 cursor-pointer justify-end hover:text-blue"
+                      onClick={nextMonth}
+                    >
+                      <span className="text-xs font-semibold sm:text-base pb-0.5 border-b border-blue whitespace-nowrap">
+                        {getMonthName(month + 1)}
+                      </span>
+                      <ShortArrowRightIcon className="h-1.5 sm:h-2 w-auto text-blue" />
+                    </button>
+                  </div>
                 </div>
-              );
-            })}
-          </div>
-        </div>
+              </div>
 
-        {/* Sidebar */}
-        <div className="w-72 border border-gray-200 rounded-xl p-6">
-          <h2 className="font-bold text-blue text-lg pb-3 border-b-2 border-blue mb-4">Lịch cả tháng</h2>
-          {loading && <p className="text-muted text-sm text-center py-8">Đang tải...</p>}
-          {!loading && schedules.length === 0 && (
-            <p className="text-muted text-sm text-center py-8 italic">Không có sự kiện</p>
-          )}
-          {!loading && schedules.map((s) => (
-            <div key={s.id} className="mb-4 border-l-4 pl-3" style={{ borderColor: s.location?.color_code || '#1B3F8B' }}>
-              <p className="text-xs text-muted">{new Date(s.date).toLocaleDateString('vi-VN')}</p>
-              <p className="text-sm font-semibold text-blue">{s.time_frame} — {s.shift}</p>
-              <p className="text-xs text-dark">{s.location?.name || s.custom_location_name}</p>
-              {s.is_sudden_closed && (
-                <p className="text-xs text-red-500 font-medium mt-0.5">⚠ {s.closed_reason || 'Đột xuất đóng cửa'}</p>
-              )}
+              {/* Calendar content */}
+              <div className="p-0 sm:p-6 pt-0">
+                <div className="grid grid-cols-7 gap-1 mb-1 sm:mb-2">
+                  {WEEKDAY_LABELS.map((day) => (
+                    <div
+                      key={day}
+                      className={`font-bold text-[8px] sm:text-sm ${
+                        day === 'THỨ 7' ? 'text-blue' :
+                        day === 'CHỦ NHẬT' ? 'text-yellow' :
+                        'text-[#2B2B2B]'
+                      }`}
+                    >
+                      {day}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Calendar cells */}
+                <div className="grid grid-cols-7 gap-0.5 sm:gap-1.5">
+                  {calendarDays.map((day, index) => {
+                    const dateStr = day ? getDateString(day) : '';
+                    const isSelected = selectedDate === dateStr;
+                    const isToday =
+                      day &&
+                      year === TODAY.getFullYear() &&
+                      month === TODAY.getMonth() &&
+                      day === TODAY.getDate();
+                    const daySchedules = day ? (schedulesByDay[day] || []) : [];
+
+                    return (
+                      <div
+                        key={index}
+                        className={`min-h-[50px] sm:min-h-[80px] p-0.5 sm:p-1 border rounded cursor-pointer transition-all ${
+                          day ? '' : 'opacity-0 pointer-events-none'
+                        } ${
+                          isSelected ? 'bg-white' : 'bg-[#F9F3E1] hover:bg-[#f9efd4]'
+                        } border-[#424241] ${isToday ? 'ring-2 ring-blue ring-inset rounded' : ''}`}
+                        onClick={() => handleDayClick(day, isSelected)}
+                      >
+                        {day && (
+                          <>
+                            <div className="text-xs sm:text-sm font-medium mb-0 sm:mb-1 pl-0.5 sm:pl-1 text-[#2B2B2B]">
+                              {day}
+                            </div>
+                            <div className="space-y-0.5">
+                              {daySchedules.map((s) => (
+                                <div
+                                  key={s.id}
+                                  className="text-[7px] sm:text-[9px] leading-tight px-0.5 sm:px-1 py-0.5 rounded truncate text-white font-medium"
+                                  style={{ backgroundColor: s.location?.color_code || '#1B3F8B' }}
+                                  title={`${s.time_frame} — ${s.location?.name || s.custom_location_name}`}
+                                >
+                                  {s.time_frame}
+                                </div>
+                              ))}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
-          ))}
+          </div>
+
+          {/* Schedule list */}
+          <div className="flex-1" style={{ height: calendarHeight || 'auto' }}>
+            <div className="border-0 sm:border sm:border-[#424241] h-full flex flex-col">
+              <div className="bg-white p-0 sm:p-6 pb-4">
+                <h2 className="text-xl sm:text-2xl pb-2 border-b-2 sm:border-b-4 border-[#424241] font-medium text-[#2B2B2B]">
+                  {displayTitle}
+                </h2>
+              </div>
+              <div className="space-y-4 p-0 sm:p-6 sm:pt-0 overflow-y-auto flex-1">
+                {loading && (
+                  <p className="text-[#424241] text-center py-8">Đang tải...</p>
+                )}
+                {!loading && displaySchedules.length === 0 && (
+                  <p className="text-[#9CA3AF] text-center py-8 italic">Không có lịch</p>
+                )}
+                {!loading && displaySchedules.map((s) => (
+                  <div
+                    key={s.id}
+                    className="pl-4 transition-all"
+                    style={{
+                      borderLeftWidth: '6px',
+                      borderLeftColor: s.location?.color_code || '#1B3F8B',
+                    }}
+                  >
+                    <p className="text-xs text-[#9CA3AF]">
+                      {new Date(s.date).toLocaleDateString('vi-VN')}
+                    </p>
+                    <h4 className="font-bold text-yellow mb-1">
+                      {s.time_frame} — {s.shift}
+                    </h4>
+                    <div className="text-xs sm:text-sm text-[#3F3F3F] font-light">
+                      {s.location?.name || s.custom_location_name}
+                    </div>
+                    {s.is_sudden_closed && (
+                      <p className="text-xs text-red-500 font-medium mt-0.5">
+                        ⚠ {s.closed_reason || 'Đột xuất đóng cửa'}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

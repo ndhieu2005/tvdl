@@ -9,6 +9,8 @@ import SchedulePage from './pages/public/SchedulePage';
 import BooksPage from './pages/public/BooksPage';
 import NewBooksPage from './pages/public/NewBooksPage';
 import ServicesPage from './pages/public/ServicesPage';
+import ContactPage from './pages/public/ContactPage';
+import SuggestionPage from './pages/public/SuggestionPage';
 
 import LoginPage from './pages/admin/LoginPage';
 import SyncPage from './pages/admin/SyncPage';
@@ -36,6 +38,8 @@ export default function App() {
           <Route path="/new-books" element={<NewBooksPage />} />
           <Route path="/services" element={<ServicesPage />} />
           <Route path="/news" element={<ServicesPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/suggest" element={<SuggestionPage />} />
         </Route>
 
         {/* Admin */}
