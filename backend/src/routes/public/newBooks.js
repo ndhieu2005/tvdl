@@ -25,8 +25,12 @@ router.get('/', async (req, res, next) => {
         id: true,
         title: true,
         author: true,
+        book_code: true,
         cover_image: true,
         short_description: true,
+        publisher: true,
+        publish_year: true,
+        page_count: true,
         created_at: true,
         location: { select: { id: true, name: true } },
         category: {

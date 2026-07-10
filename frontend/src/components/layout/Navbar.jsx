@@ -3,9 +3,11 @@ import { Link } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import logoSvg from '../../assets/logo_gradient.svg';
 
+export const SKOOLIB_URL = 'https://skoolib.net/li/tvdlcs1/opac-public';
+
 const SERVICES_SUBMENU = [
   { text: 'Sách mới', to: '/new-books' },
-  { text: 'Tra cứu tài liệu', to: '/search' },
+  { text: 'Tra cứu tài liệu', href: SKOOLIB_URL },
   { text: 'Đề xuất sách', to: '/suggest' },
 ];
 
@@ -14,6 +16,7 @@ const MOBILE_NAV = [
   { name: 'Về thư viện', to: '/about' },
   { name: 'Lịch hoạt động', to: '/schedule' },
   { name: 'Dịch vụ thư viện', to: '/services' },
+  { name: 'Tra cứu tài liệu', href: SKOOLIB_URL },
   { name: 'Đề xuất sách', to: '/suggest' },
   { name: 'Tin tức', to: '/news' },
 ];
@@ -80,11 +83,18 @@ export default function Navbar() {
                 style={{ width: serviceMenuRef.current?.offsetWidth || 'auto' }}
               >
                 {SERVICES_SUBMENU.map((item) => (
-                  <li key={item.to} className="border-b border-white/20 hover:text-yellow h-10">
-                    <Link to={item.to} className="w-full h-full flex items-center gap-8 pl-5">
-                      <ShortArrowRightIcon className="h-2 w-auto" />
-                      {item.text}
-                    </Link>
+                  <li key={item.text} className="border-b border-white/20 hover:text-yellow h-10">
+                    {item.href ? (
+                      <a href={item.href} target="_blank" rel="noopener noreferrer" className="w-full h-full flex items-center gap-8 pl-5">
+                        <ShortArrowRightIcon className="h-2 w-auto" />
+                        {item.text}
+                      </a>
+                    ) : (
+                      <Link to={item.to} className="w-full h-full flex items-center gap-8 pl-5">
+                        <ShortArrowRightIcon className="h-2 w-auto" />
+                        {item.text}
+                      </Link>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -98,13 +108,15 @@ export default function Navbar() {
           </li>
         </ul>
 
-        {/* Search */}
-        <Link
-          to="/search"
+        {/* Search — tra cứu trực tiếp trên Skoolib */}
+        <a
+          href={SKOOLIB_URL}
+          target="_blank"
+          rel="noopener noreferrer"
           className="w-28 hidden sm:flex items-center justify-center bg-dark duration-200 hover:opacity-80"
         >
           <SearchIcon className="text-white max-h-5 w-auto" />
-        </Link>
+        </a>
 
         {/* Social icons */}
         <div className="flex items-center justify-center gap-4 bg-light-blue w-48 shrink-0">
@@ -158,14 +170,27 @@ export default function Navbar() {
       {isMenuOpen && (
         <div className="sm:hidden border-b border-[#c9d7ec]">
           {MOBILE_NAV.map((item) => (
-            <Link
-              key={item.to}
-              to={item.to}
-              className="text-blue border-t border-[#c9d7ec] block px-3 py-2 text-sm"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              {item.name}
-            </Link>
+            item.href ? (
+              <a
+                key={item.name}
+                href={item.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue border-t border-[#c9d7ec] block px-3 py-2 text-sm"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {item.name}
+              </a>
+            ) : (
+              <Link
+                key={item.name}
+                to={item.to}
+                className="text-blue border-t border-[#c9d7ec] block px-3 py-2 text-sm"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {item.name}
+              </Link>
+            )
           ))}
         </div>
       )}

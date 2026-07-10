@@ -71,14 +71,16 @@ export default function HubPage() {
           ))}
         </div>
 
-        {/* Search row */}
-        <Link
-          to="/search"
+        {/* Search row — tra cứu trực tiếp trên Skoolib */}
+        <a
+          href="https://skoolib.net/li/tvdlcs1/opac-public"
+          target="_blank"
+          rel="noopener noreferrer"
           className="h-20 text-base sm:text-xl flex items-center justify-center bg-dark duration-200 hover:opacity-80 text-white"
         >
           <SearchIcon className="text-white h-3.5 mr-2 sm:mr-5 w-auto" />
           TÌM KIẾM
-        </Link>
+        </a>
       </div>
     </div>
   );

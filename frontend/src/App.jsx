@@ -6,16 +6,19 @@ import AdminLayout from './components/layout/AdminLayout';
 import HubPage from './pages/public/HubPage';
 import AboutPage from './pages/public/AboutPage';
 import SchedulePage from './pages/public/SchedulePage';
-import BooksPage from './pages/public/BooksPage';
 import NewBooksPage from './pages/public/NewBooksPage';
 import ServicesPage from './pages/public/ServicesPage';
 import ContactPage from './pages/public/ContactPage';
 import SuggestionPage from './pages/public/SuggestionPage';
+import PostsPage from './pages/public/PostsPage';
+import PostDetailPage from './pages/public/PostDetailPage';
 
 import LoginPage from './pages/admin/LoginPage';
 import SyncPage from './pages/admin/SyncPage';
 import AdminNewBooksPage from './pages/admin/AdminNewBooksPage';
 import AdminSchedulesPage from './pages/admin/AdminSchedulesPage';
+import AdminEventsPage from './pages/admin/AdminEventsPage';
+import AdminPostsPage from './pages/admin/AdminPostsPage';
 import SuggestionsPage from './pages/admin/SuggestionsPage';
 
 function RequireAuth({ children }) {
@@ -34,10 +37,10 @@ export default function App() {
         <Route element={<PublicLayout />}>
           <Route path="/about" element={<AboutPage />} />
           <Route path="/schedule" element={<SchedulePage />} />
-          <Route path="/search" element={<BooksPage />} />
           <Route path="/new-books" element={<NewBooksPage />} />
           <Route path="/services" element={<ServicesPage />} />
-          <Route path="/news" element={<ServicesPage />} />
+          <Route path="/news" element={<PostsPage />} />
+          <Route path="/news/:slug" element={<PostDetailPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/suggest" element={<SuggestionPage />} />
         </Route>
@@ -49,6 +52,8 @@ export default function App() {
           <Route path="sync" element={<SyncPage />} />
           <Route path="new-books" element={<AdminNewBooksPage />} />
           <Route path="schedules" element={<AdminSchedulesPage />} />
+          <Route path="events" element={<AdminEventsPage />} />
+          <Route path="posts" element={<AdminPostsPage />} />
           <Route path="suggestions" element={<SuggestionsPage />} />
         </Route>
       </Routes>

@@ -1,5 +1,11 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
+import { Star } from 'lucide-react';
 import { api } from '../../lib/api';
+
+function formatTimeRange(ev) {
+  const fmt = (d) => new Date(d).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+  return ev.end_datetime ? `${fmt(ev.event_datetime)}–${fmt(ev.end_datetime)}` : fmt(ev.event_datetime);
+}
 
 const MONTH_NAMES = [
   'Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
@@ -21,6 +27,7 @@ export default function SchedulePage() {
   const [month, setMonth] = useState(TODAY.getMonth()); // 0-indexed
   const [year, setYear] = useState(TODAY.getFullYear());
   const [schedules, setSchedules] = useState([]);
+  const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null); // 'yyyy-MM-dd'
   const calendarRef = useRef(null);
@@ -34,9 +41,15 @@ export default function SchedulePage() {
 
   useEffect(() => {
     setLoading(true);
-    api.get(`/schedules?month=${month + 1}&year=${year}`)
-      .then((r) => setSchedules(r.data.data || []))
-      .catch(() => setSchedules([]))
+    Promise.all([
+      api.get(`/schedules?month=${month + 1}&year=${year}`),
+      api.get(`/events?month=${month + 1}&year=${year}`),
+    ])
+      .then(([rs, re]) => {
+        setSchedules(rs.data.data || []);
+        setEvents(re.data.data || []);
+      })
+      .catch(() => { setSchedules([]); setEvents([]); })
       .finally(() => setLoading(false));
   }, [month, year]);
 
@@ -82,6 +95,16 @@ export default function SchedulePage() {
     return map;
   }, [schedules]);
 
+  const eventsByDay = useMemo(() => {
+    const map = {};
+    events.forEach((ev) => {
+      const d = new Date(ev.event_datetime).getDate();
+      if (!map[d]) map[d] = [];
+      map[d].push(ev);
+    });
+    return map;
+  }, [events]);
+
   function getDateString(day) {
     return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
   }
@@ -98,6 +121,12 @@ export default function SchedulePage() {
   }, [selectedDate, schedulesByDay]);
 
   const displaySchedules = selectedDate ? selectedDaySchedules : schedules;
+
+  const displayEvents = useMemo(() => {
+    if (!selectedDate) return events;
+    const day = parseInt(selectedDate.split('-')[2], 10);
+    return eventsByDay[day] || [];
+  }, [selectedDate, events, eventsByDay]);
 
   const displayTitle = selectedDate
     ? `Lịch ngày ${selectedDate.split('-').reverse().join('/')}`
@@ -171,6 +200,7 @@ export default function SchedulePage() {
                       month === TODAY.getMonth() &&
                       day === TODAY.getDate();
                     const daySchedules = day ? (schedulesByDay[day] || []) : [];
+                    const dayEvents = day ? (eventsByDay[day] || []) : [];
 
                     return (
                       <div
@@ -198,6 +228,18 @@ export default function SchedulePage() {
                                   {s.time_frame}
                                 </div>
                               ))}
+                              {dayEvents.map((ev) => (
+                                <div
+                                  key={`ev-${ev.id}`}
+                                  className={`text-[7px] sm:text-[9px] leading-tight px-0.5 sm:px-1 py-0.5 rounded truncate font-medium ${
+                                    ev.is_featured ? 'text-[#2B2B2B] font-bold' : 'text-white'
+                                  }`}
+                                  style={{ backgroundColor: ev.is_featured ? '#F5C000' : (ev.color || '#1B3F8B') }}
+                                  title={`${ev.name} — ${formatTimeRange(ev)}`}
+                                >
+                                  {ev.is_featured && '★ '}{ev.name}
+                                </div>
+                              ))}
                             </div>
                           </>
                         )}
@@ -221,9 +263,37 @@ export default function SchedulePage() {
                 {loading && (
                   <p className="text-[#424241] text-center py-8">Đang tải...</p>
                 )}
-                {!loading && displaySchedules.length === 0 && (
+                {!loading && displaySchedules.length === 0 && displayEvents.length === 0 && (
                   <p className="text-[#9CA3AF] text-center py-8 italic">Không có lịch</p>
                 )}
+                {!loading && displayEvents.map((ev) => (
+                  <div
+                    key={`ev-${ev.id}`}
+                    className={`pl-4 transition-all ${ev.is_featured ? 'bg-yellow/10 py-2 rounded-r' : ''}`}
+                    style={{
+                      borderLeftWidth: '6px',
+                      borderLeftColor: ev.is_featured ? '#F5C000' : (ev.color || '#1B3F8B'),
+                    }}
+                  >
+                    <p className="text-xs text-[#9CA3AF]">
+                      {new Date(ev.event_datetime).toLocaleDateString('vi-VN')}
+                    </p>
+                    <h4 className="font-bold text-blue mb-1 flex items-center gap-1.5 flex-wrap">
+                      {ev.name}
+                      {ev.is_featured && (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide bg-yellow text-[#2B2B2B] px-1.5 py-0.5 rounded">
+                          <Star size={10} className="fill-[#2B2B2B]" /> Nổi bật
+                        </span>
+                      )}
+                    </h4>
+                    <div className="text-xs sm:text-sm text-[#3F3F3F] font-light">
+                      {formatTimeRange(ev)} · {ev.location?.name || ev.custom_location_name || ''}
+                    </div>
+                    {ev.description && (
+                      <p className="text-xs text-[#9CA3AF] mt-0.5 line-clamp-2">{ev.description}</p>
+                    )}
+                  </div>
+                ))}
                 {!loading && displaySchedules.map((s) => (
                   <div
                     key={s.id}

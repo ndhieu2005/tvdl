@@ -1,26 +1,18 @@
-
 import { useState, useEffect } from 'react';
-import { Plus, Pencil, Trash2, X, Check } from 'lucide-react';
-import { adminApi } from '../../lib/api';
+import { Plus, Pencil, Trash2, Check } from 'lucide-react';
+import { adminApi, api } from '../../lib/api';
+import Modal from '../../components/Modal';
+import ImageUploadField from '../../components/ImageUploadField';
 
-function Modal({ title, onClose, children }) {
-  return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md">
-        <div className="flex items-center justify-between px-6 py-4 border-b">
-          <h2 className="font-bold text-blue">{title}</h2>
-          <button onClick={onClose} className="text-muted hover:text-blue"><X size={20} /></button>
-        </div>
-        <div className="px-6 py-5">{children}</div>
-      </div>
-    </div>
-  );
-}
-
-const EMPTY_FORM = { title: '', author: '', cover_image: '', short_description: '', location_id: '', category_id: '' };
+const EMPTY_FORM = {
+  title: '', author: '', book_code: '', cover_image: '', short_description: '',
+  publisher: '', publish_year: '', page_count: '', location_id: '', category_id: '',
+};
 
 export default function AdminNewBooksPage() {
   const [books, setBooks] = useState([]);
+  const [locations, setLocations] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -41,14 +33,22 @@ export default function AdminNewBooksPage() {
   }
 
   useEffect(() => { fetchBooks(page); }, [page]);
+  useEffect(() => {
+    api.get('/locations').then((r) => setLocations(r.data.data || [])).catch(() => {});
+    api.get('/categories').then((r) => setCategories(r.data.data || [])).catch(() => {});
+  }, []);
 
   function openCreate() { setForm(EMPTY_FORM); setModal('create'); }
   function openEdit(book) {
     setForm({
       title: book.title || '',
       author: book.author || '',
+      book_code: book.book_code || '',
       cover_image: book.cover_image || '',
       short_description: book.short_description || '',
+      publisher: book.publisher || '',
+      publish_year: book.publish_year ?? '',
+      page_count: book.page_count ?? '',
       location_id: book.location?.id || '',
       category_id: book.category?.id || '',
     });
@@ -79,6 +79,9 @@ export default function AdminNewBooksPage() {
     fetchBooks(page);
   }
 
+  const inputCls = 'w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-blue outline-none';
+  const labelCls = 'block text-xs font-semibold text-blue uppercase tracking-wide mb-1';
+
   return (
     <div className="p-8">
       <div className="flex items-center justify-between mb-6">
@@ -98,8 +101,14 @@ export default function AdminNewBooksPage() {
                   {b.cover_image ? <img src={b.cover_image} alt="" className="w-full h-full object-cover rounded" /> : <span>📚</span>}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-blue text-sm truncate">{b.title}</p>
-                  <p className="text-muted text-xs">{b.author} · {b.category?.name} · {b.location?.name}</p>
+                  <p className="font-semibold text-blue text-sm truncate">
+                    {b.title}
+                    {b.book_code && <span className="ml-2 text-muted text-xs font-normal">({b.book_code})</span>}
+                  </p>
+                  <p className="text-muted text-xs">
+                    {b.author} · {b.category?.name} · {b.location?.name}
+                    {b.publisher && ` · ${b.publisher}${b.publish_year ? ` ${b.publish_year}` : ''}`}
+                  </p>
                 </div>
                 <div className="flex gap-2 shrink-0">
                   <button onClick={() => openEdit(b)} className="p-2 text-blue hover:bg-blue/10 rounded-lg transition-colors"><Pencil size={15} /></button>
@@ -124,29 +133,58 @@ export default function AdminNewBooksPage() {
       {modal && (
         <Modal title={modal === 'create' ? 'Thêm sách mới' : 'Chỉnh sửa sách'} onClose={() => setModal(null)}>
           <div className="space-y-3">
-            {[
-              { key: 'title', label: 'Tên sách *' },
-              { key: 'author', label: 'Tác giả' },
-              { key: 'cover_image', label: 'URL ảnh bìa' },
-              { key: 'location_id', label: 'ID Cơ sở *' },
-              { key: 'category_id', label: 'ID Thể loại *' },
-            ].map(({ key, label }) => (
-              <div key={key}>
-                <label className="block text-xs font-semibold text-blue uppercase tracking-wide mb-1">{label}</label>
-                <input
-                  value={form[key]}
-                  onChange={(e) => setForm({ ...form, [key]: e.target.value })}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-blue outline-none"
-                />
-              </div>
-            ))}
             <div>
-              <label className="block text-xs font-semibold text-blue uppercase tracking-wide mb-1">Mô tả ngắn</label>
+              <label className={labelCls}>Tên sách *</label>
+              <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className={inputCls} />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className={labelCls}>Tác giả</label>
+                <input value={form.author} onChange={(e) => setForm({ ...form, author: e.target.value })} className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>Mã sách</label>
+                <input value={form.book_code} onChange={(e) => setForm({ ...form, book_code: e.target.value })} className={inputCls} />
+              </div>
+            </div>
+            <ImageUploadField label="Ảnh bìa" value={form.cover_image} onChange={(url) => setForm({ ...form, cover_image: url })} />
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <label className={labelCls}>Nhà xuất bản</label>
+                <input value={form.publisher} onChange={(e) => setForm({ ...form, publisher: e.target.value })} className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>Năm XB</label>
+                <input type="number" min="1900" max="2100" value={form.publish_year} onChange={(e) => setForm({ ...form, publish_year: e.target.value })} className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>Số trang</label>
+                <input type="number" min="1" value={form.page_count} onChange={(e) => setForm({ ...form, page_count: e.target.value })} className={inputCls} />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className={labelCls}>Cơ sở *</label>
+                <select value={form.location_id} onChange={(e) => setForm({ ...form, location_id: e.target.value })} className={inputCls}>
+                  <option value="">— Chọn cơ sở —</option>
+                  {locations.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className={labelCls}>Thể loại *</label>
+                <select value={form.category_id} onChange={(e) => setForm({ ...form, category_id: e.target.value })} className={inputCls}>
+                  <option value="">— Chọn thể loại —</option>
+                  {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
+              </div>
+            </div>
+            <div>
+              <label className={labelCls}>Mô tả ngắn</label>
               <textarea
                 rows={3}
                 value={form.short_description}
                 onChange={(e) => setForm({ ...form, short_description: e.target.value })}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-blue outline-none resize-none"
+                className={`${inputCls} resize-none`}
               />
             </div>
           </div>

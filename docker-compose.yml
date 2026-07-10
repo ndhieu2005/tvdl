@@ -30,6 +30,8 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
+    volumes:
+      - tvdl_uploads:/app/uploads
     networks:
       - tvdl_net
     # ports:
@@ -48,6 +50,7 @@ services:
 
 volumes:
   tvdl_mysql_data:
+  tvdl_uploads:
 
 networks:
   tvdl_net:

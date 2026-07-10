@@ -4,6 +4,8 @@ const ADMIN_NAV = [
   { label: 'Đồng bộ Skoolib', to: '/admin/sync' },
   { label: 'Sách mới', to: '/admin/new-books' },
   { label: 'Lịch hoạt động', to: '/admin/schedules' },
+  { label: 'Sự kiện', to: '/admin/events' },
+  { label: 'Bài viết', to: '/admin/posts' },
   { label: 'Đề xuất', to: '/admin/suggestions' },
 ];
 

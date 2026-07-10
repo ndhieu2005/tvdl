@@ -78,8 +78,12 @@ model New_Books {
   id                Int        @id @default(autoincrement())
   title             String     @db.VarChar(255)
   author            String?    @db.VarChar(255)
+  book_code         String?    @db.VarChar(50)
   cover_image       String?    @db.VarChar(255)
   short_description String?    @db.Text
+  publisher         String?    @db.VarChar(255)
+  publish_year      Int?
+  page_count        Int?
   location_id       Int
   category_id       Int
   created_at        DateTime   @default(now())
@@ -129,6 +133,9 @@ model Events {
   id                   Int         @id @default(autoincrement())
   name                 String      @db.VarChar(255)
   event_datetime       DateTime
+  end_datetime         DateTime?
+  is_featured          Boolean     @default(false)
+  color                String?     @db.VarChar(10)
   location_id          Int?
   target_age_group_id  Int?
   seat_count           Int?
@@ -140,4 +147,16 @@ model Events {
   deleted_at           DateTime?
   location             Locations?  @relation(fields: [location_id], references: [id])
   target_age_group     Age_Groups? @relation(fields: [target_age_group_id], references: [id])
+}
+
+model Posts {
+  id          Int       @id @default(autoincrement())
+  title       String    @db.VarChar(255)
+  slug        String    @unique @db.VarChar(255)
+  summary     String?   @db.Text
+  content     String    @db.LongText
+  cover_image String?   @db.VarChar(255)
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  deleted_at  DateTime?
 }

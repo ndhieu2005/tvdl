@@ -20,8 +20,12 @@ router.get('/', async (req, res, next) => {
           id: true,
           title: true,
           author: true,
+          book_code: true,
           cover_image: true,
           short_description: true,
+          publisher: true,
+          publish_year: true,
+          page_count: true,
           created_at: true,
           location: { select: { id: true, name: true } },
           category: {
@@ -49,7 +53,10 @@ router.get('/', async (req, res, next) => {
 // POST /api/v1/admin/new-books
 router.post('/', async (req, res, next) => {
   try {
-    const { title, author, cover_image, short_description, location_id, category_id } = req.body;
+    const {
+      title, author, book_code, cover_image, short_description,
+      publisher, publish_year, page_count, location_id, category_id,
+    } = req.body;
 
     if (!title || !location_id || !category_id)
       return error(res, 'Thiếu title, location_id hoặc category_id', 'VALIDATION_ERROR', 400);
@@ -58,8 +65,12 @@ router.post('/', async (req, res, next) => {
       data: {
         title,
         author: author || null,
+        book_code: book_code || null,
         cover_image: cover_image || null,
         short_description: short_description || null,
+        publisher: publisher || null,
+        publish_year: publish_year ? parseInt(publish_year) : null,
+        page_count: page_count ? parseInt(page_count) : null,
         location_id: parseInt(location_id),
         category_id: parseInt(category_id),
       },
@@ -75,7 +86,10 @@ router.post('/', async (req, res, next) => {
 router.put('/:id', async (req, res, next) => {
   try {
     const id = parseInt(req.params.id);
-    const { title, author, cover_image, short_description, location_id, category_id } = req.body;
+    const {
+      title, author, book_code, cover_image, short_description,
+      publisher, publish_year, page_count, location_id, category_id,
+    } = req.body;
 
     const existing = await prisma.new_Books.findFirst({ where: { id, deleted_at: null } });
     if (!existing)
@@ -86,8 +100,12 @@ router.put('/:id', async (req, res, next) => {
       data: {
         ...(title && { title }),
         ...(author !== undefined && { author }),
+        ...(book_code !== undefined && { book_code }),
         ...(cover_image !== undefined && { cover_image }),
         ...(short_description !== undefined && { short_description }),
+        ...(publisher !== undefined && { publisher }),
+        ...(publish_year !== undefined && { publish_year: publish_year ? parseInt(publish_year) : null }),
+        ...(page_count !== undefined && { page_count: page_count ? parseInt(page_count) : null }),
         ...(location_id && { location_id: parseInt(location_id) }),
         ...(category_id && { category_id: parseInt(category_id) }),
       },

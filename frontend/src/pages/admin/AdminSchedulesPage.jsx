@@ -1,20 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Plus, Pencil, Trash2, X, Check, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Pencil, Trash2, Check, ChevronLeft, ChevronRight } from 'lucide-react';
 import { adminApi } from '../../lib/api';
-
-function Modal({ title, onClose, children }) {
-  return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md">
-        <div className="flex items-center justify-between px-6 py-4 border-b">
-          <h2 className="font-bold text-blue">{title}</h2>
-          <button onClick={onClose}><X size={20} className="text-muted" /></button>
-        </div>
-        <div className="px-6 py-5">{children}</div>
-      </div>
-    </div>
-  );
-}
+import Modal from '../../components/Modal';
 
 const EMPTY_FORM = { date: '', shift: 'morning', time_frame: '', location_id: '', custom_location_name: '', is_sudden_closed: false, closed_reason: '' };
 
