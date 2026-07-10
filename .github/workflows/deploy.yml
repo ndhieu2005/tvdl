@@ -1,0 +1,30 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: [self-hosted, tvdl-vps]
+    steps:
+      - name: Pull latest code into persistent clone
+        run: |
+          cd /home/admintvdl/tvdl
+          git fetch origin main
+          git reset --hard origin/main
+
+      - name: Build and start containers
+        run: |
+          cd /home/admintvdl/tvdl
+          docker compose up -d --build --wait
+
+      - name: Apply database migrations
+        run: |
+          cd /home/admintvdl/tvdl
+          docker compose exec -T backend npx prisma migrate deploy

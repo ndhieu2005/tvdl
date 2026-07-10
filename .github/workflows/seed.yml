@@ -1,0 +1,13 @@
+name: Seed DB (manual)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  seed:
+    runs-on: [self-hosted, tvdl-vps]
+    steps:
+      - name: Seed database
+        run: |
+          cd /home/admintvdl/tvdl
+          docker compose exec -T backend node scripts/seed.js
