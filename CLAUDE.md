@@ -33,16 +33,20 @@ npm run lint               # ESLint check
 
 > Vite dev server proxies `/api` to `http://localhost:3000`, so frontend at port 5173 talks to backend without CORS issues. Both servers must run simultaneously during local development.
 
-## Deployment (VPS)
+## Deployment (VPS Azure, Docker Compose)
 
-- VPS: Ubuntu, IP `103.166.182.105`, SSH port `24700`
-- Backend path: `/var/www/tvdl/backend/` — managed by PM2 (`tvdl-backend`), port `3000`
-- Frontend path: `/var/www/tvdl/frontend/` — served by Nginx
-- CI/CD: GitLab pipeline (`.gitlab-ci.yml`) — push to `main` → auto SSH → `git pull && npm install && pm2 restart`
+- VPS: Ubuntu (Azure), IP `172.188.56.127`, SSH: `ssh -i ~/.ssh/tvdl_secret.pem admintvdl@172.188.56.127`
+- App path: `/home/admintvdl/tvdl` — git clone của repo, chạy bằng Docker Compose
+- Containers: `tvdl_mysql` (internal-only), `tvdl_backend` (internal-only), `tvdl_frontend` (Nginx, host port 80)
+- Secrets: `/home/admintvdl/tvdl/.env` (chỉ tồn tại trên VPS, xem `.env.example`)
+- CI/CD: GitHub Actions (`.github/workflows/deploy.yml`) — push to `main` → self-hosted runner trên VPS → `git pull && docker compose up -d --build && prisma migrate deploy`
+- Seed DB: workflow `Seed DB (manual)` chạy tay từ tab Actions
+- Lưu ý: VPS này còn chạy project khác (`vms_*` containers, ports 3000/3001/3307/6379) — không đụng vào
 
 ```bash
-pm2 restart tvdl-backend   # Restart backend
-pm2 logs tvdl-backend      # View logs
+cd ~/tvdl && docker compose ps            # Trạng thái containers
+docker compose logs backend --tail=50     # View logs
+docker compose up -d --build              # Rebuild + restart thủ công
 ```
 
 ## API Design
