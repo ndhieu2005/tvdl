@@ -20,6 +20,13 @@ export default function AdminNewBooksPage() {
     endpoint: '/new-books',
     emptyForm: EMPTY_FORM,
     confirmDelete: 'Xoá sách này?',
+    validate: (f) => {
+      const errs = {};
+      if (!f.title.trim()) errs.title = 'Nhập tên sách';
+      if (!f.location_id) errs.location_id = 'Chọn cơ sở';
+      if (!f.category_id) errs.category_id = 'Chọn thể loại';
+      return errs;
+    },
     toForm: (b) => ({
       title: b.title || '',
       author: b.author || '',
@@ -85,7 +92,7 @@ export default function AdminNewBooksPage() {
       {crud.modal && (
         <Modal title={crud.modal === 'create' ? 'Thêm sách mới' : 'Chỉnh sửa sách'} onClose={() => crud.setModal(null)}>
           <div className="space-y-3">
-            <FormField label="Tên sách" required>
+            <FormField label="Tên sách" required error={crud.errors.title}>
               <TextInput value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
             </FormField>
             <div className="grid grid-cols-2 gap-3">
@@ -109,13 +116,13 @@ export default function AdminNewBooksPage() {
               </FormField>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <FormField label="Cơ sở" required>
+              <FormField label="Cơ sở" required error={crud.errors.location_id}>
                 <Select value={form.location_id} onChange={(e) => setForm({ ...form, location_id: e.target.value })}>
                   <option value="">— Chọn cơ sở —</option>
                   {locations.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
                 </Select>
               </FormField>
-              <FormField label="Thể loại" required>
+              <FormField label="Thể loại" required error={crud.errors.category_id}>
                 <Select value={form.category_id} onChange={(e) => setForm({ ...form, category_id: e.target.value })}>
                   <option value="">— Chọn thể loại —</option>
                   {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}

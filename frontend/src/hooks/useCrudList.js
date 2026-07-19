@@ -10,7 +10,7 @@ import { useConfirm } from '../components/ui/ConfirmDialog';
  * const crud = useCrudList({ endpoint: '/events', emptyForm: EMPTY_FORM,
  *   toForm: (item) => ({...}), confirmDelete: 'Xoá sự kiện này?' });
  */
-export default function useCrudList({ endpoint, emptyForm, toForm, confirmDelete = 'Xoá mục này?', limit = 20 }) {
+export default function useCrudList({ endpoint, emptyForm, toForm, confirmDelete = 'Xoá mục này?', limit = 20, validate }) {
   const toast = useToast();
   const confirm = useConfirm();
 
@@ -22,6 +22,7 @@ export default function useCrudList({ endpoint, emptyForm, toForm, confirmDelete
   const [form, setForm] = useState(emptyForm);
   const [editId, setEditId] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [errors, setErrors] = useState({}); // { field: 'thông báo lỗi' } — hiển thị inline qua FormField
 
   const fetchList = useCallback((p = page) => {
     setLoading(true);
@@ -39,17 +40,24 @@ export default function useCrudList({ endpoint, emptyForm, toForm, confirmDelete
 
   function openCreate(overrides = {}) {
     setForm({ ...emptyForm, ...overrides });
+    setErrors({});
     setModal('create');
   }
 
   function openEdit(item) {
     setForm(toForm ? toForm(item) : { ...item });
     setEditId(item.id);
+    setErrors({});
     setModal('edit');
   }
 
   /** payload mặc định là form; truyền buildPayload để biến đổi trước khi gửi */
   async function handleSave(buildPayload) {
+    if (validate) {
+      const errs = validate(form, modal) || {};
+      setErrors(errs);
+      if (Object.keys(errs).length > 0) return false;
+    }
     setSaving(true);
     try {
       const payload = buildPayload ? buildPayload(form, modal) : form;
@@ -80,7 +88,7 @@ export default function useCrudList({ endpoint, emptyForm, toForm, confirmDelete
 
   return {
     items, page, setPage, totalPages, loading,
-    modal, setModal, form, setForm, editId, saving,
+    modal, setModal, form, setForm, editId, saving, errors,
     fetchList, openCreate, openEdit, handleSave, handleDelete,
   };
 }

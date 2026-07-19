@@ -20,8 +20,19 @@ export default function PostDetailPage() {
 
   if (status === 'loading') {
     return (
-      <div className="min-h-[calc(100vh-64px)] flex items-center justify-center">
-        <p className="text-[#9CA3AF]">Đang tải...</p>
+      <div className="min-h-[calc(100vh-64px)] py-5 sm:py-12">
+        <div className="max-w-3xl mx-auto px-3 sm:px-6 lg:px-8 animate-pulse">
+          <div className="h-3 w-24 bg-[#F2EAD3] rounded mb-6" />
+          <div className="h-8 w-3/4 bg-[#F2EAD3] rounded mb-3" />
+          <div className="h-3 w-32 bg-[#F2EAD3] rounded mb-8" />
+          <div className="aspect-[16/9] bg-[#F2EAD3] mb-8" />
+          <div className="space-y-3">
+            <div className="h-3 w-full bg-[#F2EAD3] rounded" />
+            <div className="h-3 w-full bg-[#F2EAD3] rounded" />
+            <div className="h-3 w-5/6 bg-[#F2EAD3] rounded" />
+            <div className="h-3 w-2/3 bg-[#F2EAD3] rounded" />
+          </div>
+        </div>
       </div>
     );
   }

@@ -173,8 +173,8 @@ export default function SchedulePage() {
                 </div>
               </div>
 
-              {/* Calendar content */}
-              <div className="p-0 sm:p-6 pt-0">
+              {/* Calendar content — mobile ẩn grid, chỉ hiện danh sách bên dưới */}
+              <div className="hidden sm:block p-0 sm:p-6 pt-0">
                 <div className="grid grid-cols-7 gap-1 mb-1 sm:mb-2">
                   {WEEKDAY_LABELS.map((day) => (
                     <div
@@ -206,7 +206,7 @@ export default function SchedulePage() {
                     return (
                       <div
                         key={index}
-                        className={`min-h-[50px] sm:min-h-[80px] p-0.5 sm:p-1 border rounded cursor-pointer transition-all ${
+                        className={`relative group min-h-[50px] sm:min-h-[80px] p-0.5 sm:p-1 border rounded cursor-pointer transition-all ${
                           day ? '' : 'opacity-0 pointer-events-none'
                         } ${
                           isSelected ? 'bg-white' : 'bg-[#F9F3E1] hover:bg-[#f9efd4]'
@@ -224,7 +224,6 @@ export default function SchedulePage() {
                                   key={s.id}
                                   className="text-[7px] sm:text-[9px] leading-tight px-0.5 sm:px-1 py-0.5 rounded truncate text-white font-medium"
                                   style={{ backgroundColor: s.location?.color_code || '#1B3F8B' }}
-                                  title={`${s.time_frame} — ${s.location?.name || s.custom_location_name}`}
                                 >
                                   {s.time_frame}
                                 </div>
@@ -236,12 +235,32 @@ export default function SchedulePage() {
                                     ev.is_featured ? 'text-[#2B2B2B] font-bold' : 'text-white'
                                   }`}
                                   style={{ backgroundColor: ev.is_featured ? '#F5C000' : (ev.color || '#1B3F8B') }}
-                                  title={`${ev.name} — ${formatTimeRange(ev)}`}
                                 >
                                   {ev.is_featured && '★ '}{ev.name}
                                 </div>
                               ))}
                             </div>
+
+                            {/* Tooltip chi tiết khi hover (desktop) */}
+                            {(daySchedules.length > 0 || dayEvents.length > 0) && (
+                              <div className="hidden group-hover:block absolute z-20 top-full left-1/2 -translate-x-1/2 mt-1 w-max max-w-[240px] bg-white border border-[#424241] rounded p-2.5 text-left shadow-lg pointer-events-none">
+                                {daySchedules.map((s) => (
+                                  <div key={s.id} className="text-[11px] leading-snug text-[#2B2B2B] py-0.5">
+                                    <span className="font-bold text-blue">{s.time_frame}</span>
+                                    {' · '}{s.location?.name || s.custom_location_name}
+                                    {s.is_sudden_closed && <span className="text-red-500 font-medium"> — đóng đột xuất</span>}
+                                  </div>
+                                ))}
+                                {dayEvents.map((ev) => (
+                                  <div key={`ev-${ev.id}`} className="text-[11px] leading-snug text-[#2B2B2B] py-0.5">
+                                    {ev.is_featured && <span className="text-yellow-dark">★ </span>}
+                                    <span className="font-bold text-blue">{ev.name}</span>
+                                    {' · '}{formatTimeRange(ev)}
+                                    {(ev.location?.name || ev.custom_location_name) && <> · {ev.location?.name || ev.custom_location_name}</>}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                           </>
                         )}
                       </div>
@@ -252,8 +271,11 @@ export default function SchedulePage() {
             </div>
           </div>
 
-          {/* Schedule list */}
-          <div className="flex-1" style={{ height: calendarHeight || 'auto' }}>
+          {/* Schedule list — cao bằng calendar trên desktop, tự do trên mobile */}
+          <div
+            className="flex-1 sm:h-[var(--cal-h)]"
+            style={{ '--cal-h': calendarHeight ? `${calendarHeight}px` : 'auto' }}
+          >
             <div className="border-0 sm:border sm:border-[#424241] h-full flex flex-col">
               <div className="bg-white p-0 sm:p-6 pb-4">
                 <h2 className="text-xl sm:text-2xl pb-2 border-b-2 sm:border-b-4 border-[#424241] font-medium text-[#2B2B2B]">
@@ -262,7 +284,15 @@ export default function SchedulePage() {
               </div>
               <div className="space-y-4 p-0 sm:p-6 sm:pt-0 overflow-y-auto flex-1">
                 {loading && (
-                  <p className="text-[#424241] text-center py-8">Đang tải...</p>
+                  <div className="space-y-4 py-2 animate-pulse">
+                    {[0, 1, 2].map((i) => (
+                      <div key={i} className="pl-4 border-l-[6px] border-[#F2EAD3]">
+                        <div className="h-3 w-20 bg-[#F2EAD3] rounded mb-2" />
+                        <div className="h-4 w-40 bg-[#F2EAD3] rounded mb-2" />
+                        <div className="h-3 w-28 bg-[#F2EAD3] rounded" />
+                      </div>
+                    ))}
+                  </div>
                 )}
                 {!loading && displaySchedules.length === 0 && displayEvents.length === 0 && (
                   <p className="text-[#9CA3AF] text-center py-8 italic">Không có lịch</p>

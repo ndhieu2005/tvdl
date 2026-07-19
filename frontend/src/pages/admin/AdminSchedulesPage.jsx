@@ -47,7 +47,7 @@ function datesInRange(from, to, weekdays) {
 
 /* ---------- Shared form pieces (dùng chung modal lịch + modal ca chuẩn) ---------- */
 
-function LocationFields({ value, onChange, locations }) {
+function LocationFields({ value, onChange, locations, errors = {} }) {
   return (
     <>
       <FormField label="Cơ sở">
@@ -57,7 +57,7 @@ function LocationFields({ value, onChange, locations }) {
         </Select>
       </FormField>
       {!value.location_id && (
-        <FormField label="Tên địa điểm tùy chỉnh">
+        <FormField label="Tên địa điểm tùy chỉnh" error={errors.custom_location_name}>
           <TextInput value={value.custom_location_name} onChange={(e) => onChange({ ...value, custom_location_name: e.target.value })} />
         </FormField>
       )}
@@ -65,13 +65,13 @@ function LocationFields({ value, onChange, locations }) {
   );
 }
 
-function TimeFields({ value, onChange }) {
+function TimeFields({ value, onChange, errors = {} }) {
   return (
     <div className="grid grid-cols-2 gap-3">
-      <FormField label="Giờ bắt đầu" required>
+      <FormField label="Giờ bắt đầu" required error={errors.start_time}>
         <TextInput type="time" value={value.start_time} onChange={(e) => onChange({ ...value, start_time: e.target.value })} />
       </FormField>
-      <FormField label="Giờ kết thúc" required>
+      <FormField label="Giờ kết thúc" required error={errors.end_time}>
         <TextInput type="time" value={value.end_time} onChange={(e) => onChange({ ...value, end_time: e.target.value })} />
       </FormField>
     </div>
@@ -96,6 +96,7 @@ export default function AdminSchedulesPage() {
   const [modal, setModal] = useState(null);
   const [form, setForm] = useState(EMPTY_SCHEDULE_FORM);
   const [tplForm, setTplForm] = useState(EMPTY_TEMPLATE_FORM);
+  const [formErrors, setFormErrors] = useState({}); // lỗi validate inline cho cả 2 modal
 
   function fetchSchedules() {
     setLoading(true);
@@ -135,6 +136,7 @@ export default function AdminSchedulesPage() {
 
   function openCreateSchedule() {
     setForm({ ...EMPTY_SCHEDULE_FORM, date: `${year}-${String(month).padStart(2, '0')}-01` });
+    setFormErrors({});
     setModal({ type: 'schedule-create' });
   }
 
@@ -150,18 +152,18 @@ export default function AdminSchedulesPage() {
       is_sudden_closed: s.is_sudden_closed || false,
       closed_reason: s.closed_reason || '',
     });
+    setFormErrors({});
     setModal({ type: 'schedule-edit', id: s.id });
   }
 
   async function saveSchedule() {
-    if (!form.start_time || !form.end_time) {
-      toast.error('Cần chọn giờ bắt đầu và kết thúc');
-      return;
-    }
-    if (!form.location_id && !form.custom_location_name) {
-      toast.error('Cần chọn cơ sở hoặc điền tên địa điểm');
-      return;
-    }
+    const errs = {};
+    if (!form.start_time) errs.start_time = 'Chọn giờ bắt đầu';
+    if (!form.end_time) errs.end_time = 'Chọn giờ kết thúc';
+    if (!form.location_id && !form.custom_location_name.trim()) errs.custom_location_name = 'Chọn cơ sở hoặc điền tên địa điểm';
+    if (modal.type === 'schedule-create' && !form.multiDay && !form.date) errs.date = 'Chọn ngày';
+    setFormErrors(errs);
+    if (Object.keys(errs).length > 0) return;
     const base = {
       shift: form.shift,
       time_frame: joinTimeFrame(form.start_time, form.end_time),
@@ -183,7 +185,6 @@ export default function AdminSchedulesPage() {
         const r = await adminApi.post('/schedules/bulk', { ...base, dates: previewDates });
         toast.success(`Đã tạo ${r.data.data.created} lịch`);
       } else if (modal.type === 'schedule-create') {
-        if (!form.date) { toast.error('Chưa chọn ngày'); return; }
         await adminApi.post('/schedules', { ...base, date: form.date });
         toast.success('Đã thêm lịch');
       } else {
@@ -219,6 +220,7 @@ export default function AdminSchedulesPage() {
 
   function openCreateTemplate() {
     setTplForm(EMPTY_TEMPLATE_FORM);
+    setFormErrors({});
     setModal({ type: 'template-create' });
   }
 
@@ -231,18 +233,17 @@ export default function AdminSchedulesPage() {
       location_id: t.location?.id || '',
       custom_location_name: t.custom_location_name || '',
     });
+    setFormErrors({});
     setModal({ type: 'template-edit', id: t.id });
   }
 
   async function saveTemplate() {
-    if (!tplForm.start_time || !tplForm.end_time) {
-      toast.error('Cần chọn giờ bắt đầu và kết thúc');
-      return;
-    }
-    if (!tplForm.location_id && !tplForm.custom_location_name) {
-      toast.error('Cần chọn cơ sở hoặc điền tên địa điểm');
-      return;
-    }
+    const errs = {};
+    if (!tplForm.start_time) errs.start_time = 'Chọn giờ bắt đầu';
+    if (!tplForm.end_time) errs.end_time = 'Chọn giờ kết thúc';
+    if (!tplForm.location_id && !tplForm.custom_location_name.trim()) errs.custom_location_name = 'Chọn cơ sở hoặc điền tên địa điểm';
+    setFormErrors(errs);
+    if (Object.keys(errs).length > 0) return;
     const payload = {
       day_of_week: tplForm.day_of_week,
       shift: tplForm.shift,
@@ -451,7 +452,7 @@ export default function AdminSchedulesPage() {
                 </FormField>
               </>
             ) : (
-              <FormField label="Ngày" required>
+              <FormField label="Ngày" required error={formErrors.date}>
                 <TextInput type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} />
               </FormField>
             )}
@@ -464,8 +465,8 @@ export default function AdminSchedulesPage() {
               </Select>
             </FormField>
 
-            <TimeFields value={form} onChange={setForm} />
-            <LocationFields value={form} onChange={setForm} locations={locations} />
+            <TimeFields value={form} onChange={setForm} errors={formErrors} />
+            <LocationFields value={form} onChange={setForm} locations={locations} errors={formErrors} />
 
             {modal.type === 'schedule-edit' && (
               <>
@@ -517,8 +518,8 @@ export default function AdminSchedulesPage() {
                 <option value="evening">Tối</option>
               </Select>
             </FormField>
-            <TimeFields value={tplForm} onChange={setTplForm} />
-            <LocationFields value={tplForm} onChange={setTplForm} locations={locations} />
+            <TimeFields value={tplForm} onChange={setTplForm} errors={formErrors} />
+            <LocationFields value={tplForm} onChange={setTplForm} locations={locations} errors={formErrors} />
           </div>
           <div className="flex justify-end gap-3 mt-5">
             <button onClick={() => setModal(null)} className="px-4 py-2 text-sm text-muted hover:text-blue">Huỷ</button>

@@ -63,6 +63,13 @@ export default function AdminPostsPage() {
     endpoint: '/posts',
     emptyForm: EMPTY_FORM,
     confirmDelete: 'Xoá bài viết này?',
+    validate: (f) => {
+      const errs = {};
+      if (!f.title.trim()) errs.title = 'Nhập tiêu đề bài viết';
+      const content = editor?.getHTML() || '';
+      if (!content || content === '<p></p>') errs.content = 'Nhập nội dung bài viết';
+      return errs;
+    },
   });
   const { form, setForm } = crud;
 
@@ -108,10 +115,6 @@ export default function AdminPostsPage() {
 
   function save() {
     const content = editor?.getHTML() || '';
-    if (!form.title || !content || content === '<p></p>') {
-      toast.error('Cần nhập tiêu đề và nội dung bài viết');
-      return;
-    }
     crud.handleSave((f) => ({ title: f.title, summary: f.summary, cover_image: f.cover_image, content }));
   }
 
@@ -154,7 +157,7 @@ export default function AdminPostsPage() {
       {crud.modal && (
         <Modal wide title={crud.modal === 'create' ? 'Đăng bài viết' : 'Chỉnh sửa bài viết'} onClose={() => crud.setModal(null)}>
           <div className="space-y-3">
-            <FormField label="Tiêu đề bài viết" required>
+            <FormField label="Tiêu đề bài viết" required error={crud.errors.title}>
               <TextInput value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
               {crud.modal === 'create' && form.title && (
                 <p className="text-muted text-xs mt-1">Slug URL sẽ tự tạo từ tiêu đề</p>
@@ -164,7 +167,7 @@ export default function AdminPostsPage() {
               <TextArea rows={2} value={form.summary} onChange={(e) => setForm({ ...form, summary: e.target.value })} />
             </FormField>
             <ImageUploadField label="Ảnh bìa" value={form.cover_image} onChange={(url) => setForm({ ...form, cover_image: url })} />
-            <FormField label="Nội dung chính" required>
+            <FormField label="Nội dung chính" required error={crud.errors.content}>
               <PostEditor editor={editor} onInsertImage={() => imageInputRef.current?.click()} uploading={uploading} />
               <input ref={imageInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={handleImageFile} className="hidden" />
             </FormField>

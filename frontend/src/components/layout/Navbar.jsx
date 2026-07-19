@@ -48,7 +48,7 @@ export default function Navbar() {
     <header className="w-full z-50 sticky top-0 bg-light-blue sm:bg-transparent">
       <nav className="flex w-full h-16">
         {/* Logo */}
-        <div className="flex items-center justify-center bg-light-blue w-40 sm:w-60 shrink-0">
+        <div className="flex items-center justify-center bg-light-blue w-32 sm:w-60 shrink-0">
           <Link to="/">
             <img src={logoSvg} alt="Thư viện Dương Liễu" className="h-10 w-auto" />
           </Link>
@@ -116,7 +116,7 @@ export default function Navbar() {
         </a>
 
         {/* Social icons */}
-        <div className="flex items-center justify-center gap-4 bg-light-blue w-48 shrink-0">
+        <div className="flex items-center justify-center gap-3 sm:gap-4 bg-light-blue w-36 sm:w-48 shrink-0">
           <a
             href="https://www.facebook.com/duonglieulibrary"
             target="_blank"

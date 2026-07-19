@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../../lib/api';
 
@@ -71,6 +71,19 @@ export default function PostsPage() {
   // chỉ fetch trang đầu khi mount; fetchMore đổi theo cursor nên không đưa vào deps
   useEffect(() => { fetchMore(true); }, []); // eslint-disable-line react-hooks/exhaustive-deps, react-hooks/set-state-in-effect
 
+  // infinite scroll: sentinel cuối trang lọt vào viewport thì tải tiếp
+  const sentinelRef = useRef(null);
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      (entries) => { if (entries[0].isIntersecting && hasMore && !loading) fetchMore(false); },
+      { rootMargin: '200px' }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [fetchMore, hasMore, loading]);
+
   return (
     <div className="min-h-[calc(100vh-64px)] py-5 sm:py-12">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
@@ -87,20 +100,22 @@ export default function PostsPage() {
         </div>
 
         {loading && (
-          <p className="text-center text-[#9CA3AF] text-sm py-6">Đang tải...</p>
-        )}
-
-        {hasMore && !loading && (
-          <div className="text-center mt-8">
-            <button
-              onClick={() => fetchMore(false)}
-              className="border border-[#424241] text-blue px-8 py-2.5 font-semibold text-sm tracking-wide hover:bg-blue hover:text-white transition-colors flex items-center gap-2 mx-auto"
-            >
-              <ShortArrowRightIcon className="h-2 w-auto" />
-              Xem thêm
-            </button>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-5 animate-pulse">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="border border-[#F2EAD3]">
+                <div className="aspect-[16/10] bg-[#F2EAD3]" />
+                <div className="p-4">
+                  <div className="h-3 w-16 bg-[#F2EAD3] rounded mb-3" />
+                  <div className="h-4 w-4/5 bg-[#F2EAD3] rounded mb-2" />
+                  <div className="h-3 w-full bg-[#F2EAD3] rounded mb-1.5" />
+                  <div className="h-3 w-2/3 bg-[#F2EAD3] rounded" />
+                </div>
+              </div>
+            ))}
           </div>
         )}
+
+        {hasMore && <div ref={sentinelRef} className="h-1" />}
       </div>
     </div>
   );

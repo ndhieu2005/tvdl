@@ -4,7 +4,6 @@ import { api } from '../../lib/api';
 import Modal from '../../components/Modal';
 import Pagination from '../../components/ui/Pagination';
 import { FormField, TextInput, Select, TextArea } from '../../components/ui/FormField';
-import { useToast } from '../../components/ui/Toast';
 import useCrudList from '../../hooks/useCrudList';
 
 const EVENT_COLORS = ['#1B3F8B', '#F5C000', '#2E7D32', '#E65100', '#6A1B9A', '#C62828'];
@@ -24,7 +23,6 @@ function toDatetime(date, time) {
 }
 
 export default function AdminEventsPage() {
-  const toast = useToast();
   const [locations, setLocations] = useState([]);
   const [ageGroups, setAgeGroups] = useState([]);
 
@@ -32,6 +30,14 @@ export default function AdminEventsPage() {
     endpoint: '/events',
     emptyForm: EMPTY_FORM,
     confirmDelete: 'Xoá sự kiện này?',
+    validate: (f) => {
+      const errs = {};
+      if (!f.name.trim()) errs.name = 'Nhập tiêu đề sự kiện';
+      if (!f.date) errs.date = 'Chọn ngày tổ chức';
+      if (!f.start_time) errs.start_time = 'Chọn giờ bắt đầu';
+      if (f.end_time && f.start_time && f.end_time <= f.start_time) errs.end_time = 'Phải sau giờ bắt đầu';
+      return errs;
+    },
     toForm: (ev) => {
       const start = ev.event_datetime ? new Date(ev.event_datetime) : null;
       const end = ev.end_datetime ? new Date(ev.end_datetime) : null;
@@ -59,10 +65,6 @@ export default function AdminEventsPage() {
   }, []);
 
   function save() {
-    if (!form.name || !form.date || !form.start_time) {
-      toast.error('Cần nhập tối thiểu: tiêu đề, ngày và giờ bắt đầu');
-      return;
-    }
     crud.handleSave((f) => ({
       name: f.name,
       event_datetime: toDatetime(f.date, f.start_time),
@@ -124,17 +126,17 @@ export default function AdminEventsPage() {
       {crud.modal && (
         <Modal title={crud.modal === 'create' ? 'Thêm sự kiện' : 'Chỉnh sửa sự kiện'} onClose={() => crud.setModal(null)}>
           <div className="space-y-3">
-            <FormField label="Tiêu đề sự kiện" required>
+            <FormField label="Tiêu đề sự kiện" required error={crud.errors.name}>
               <TextInput value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
             </FormField>
             <div className="grid grid-cols-3 gap-3">
-              <FormField label="Ngày tổ chức" required>
+              <FormField label="Ngày tổ chức" required error={crud.errors.date}>
                 <TextInput type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} />
               </FormField>
-              <FormField label="Giờ bắt đầu" required>
+              <FormField label="Giờ bắt đầu" required error={crud.errors.start_time}>
                 <TextInput type="time" value={form.start_time} onChange={(e) => setForm({ ...form, start_time: e.target.value })} />
               </FormField>
-              <FormField label="Giờ kết thúc">
+              <FormField label="Giờ kết thúc" error={crud.errors.end_time}>
                 <TextInput type="time" value={form.end_time} onChange={(e) => setForm({ ...form, end_time: e.target.value })} />
               </FormField>
             </div>

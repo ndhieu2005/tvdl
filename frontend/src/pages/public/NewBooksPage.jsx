@@ -1,13 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { api } from '../../lib/api';
-
-function ShortArrowRightIcon({ className }) {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12.69 8.88" fill="currentColor" className={className}>
-      <path d="m12.69,4.48c0-.1-.02-.21-.12-.3-.17-.17-.33-.34-.5-.5-1.17-1.19-2.33-2.37-3.5-3.56-.37-.38-.95.2-.58.58.17.17.33.34.5.5.94.95,1.87,1.9,2.81,2.85H.4c-.53,0-.53.82,0,.82h10.88c-1.11,1.1-2.23,2.2-3.35,3.3-.38.37.2.95.58.58.17-.17.34-.34.51-.51,1.18-1.17,2.36-2.33,3.54-3.49.07-.07.11-.16.11-.25,0-.01,0-.02,0-.03Z"/>
-    </svg>
-  );
-}
 
 function NewBookCard({ book }) {
   return (
@@ -69,6 +61,19 @@ export default function NewBooksPage() {
   // chỉ fetch trang đầu khi mount; fetchMore đổi theo cursor nên không đưa vào deps
   useEffect(() => { fetchMore(true); }, []); // eslint-disable-line react-hooks/exhaustive-deps, react-hooks/set-state-in-effect
 
+  // infinite scroll: sentinel cuối trang lọt vào viewport thì tải tiếp
+  const sentinelRef = useRef(null);
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      (entries) => { if (entries[0].isIntersecting && hasMore && !loading) fetchMore(false); },
+      { rootMargin: '200px' }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [fetchMore, hasMore, loading]);
+
   return (
     <div className="min-h-[calc(100vh-64px)] py-5 sm:py-12">
       <div className="max-w-4xl mx-auto px-3 sm:px-6 lg:px-8">
@@ -85,20 +90,22 @@ export default function NewBooksPage() {
         </div>
 
         {loading && (
-          <p className="text-center text-[#9CA3AF] text-sm py-6">Đang tải...</p>
-        )}
-
-        {hasMore && !loading && (
-          <div className="text-center mt-8">
-            <button
-              onClick={() => fetchMore(false)}
-              className="border border-[#424241] text-blue px-8 py-2.5 font-semibold text-sm tracking-wide hover:bg-blue hover:text-white transition-colors flex items-center gap-2 mx-auto"
-            >
-              <ShortArrowRightIcon className="h-2 w-auto" />
-              Xem thêm
-            </button>
+          <div className="space-y-0 animate-pulse">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="flex gap-4 pl-4 py-4 border-l-[6px] border-[#F2EAD3]">
+                <div className="w-20 h-28 shrink-0 bg-[#F2EAD3]" />
+                <div className="flex-1 pt-1">
+                  <div className="h-4 w-2/3 bg-[#F2EAD3] rounded mb-2" />
+                  <div className="h-3 w-1/3 bg-[#F2EAD3] rounded mb-3" />
+                  <div className="h-3 w-full bg-[#F2EAD3] rounded mb-1.5" />
+                  <div className="h-3 w-4/5 bg-[#F2EAD3] rounded" />
+                </div>
+              </div>
+            ))}
           </div>
         )}
+
+        {hasMore && <div ref={sentinelRef} className="h-1" />}
       </div>
     </div>
   );
