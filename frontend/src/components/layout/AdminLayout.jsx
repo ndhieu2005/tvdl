@@ -1,12 +1,12 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { CalendarDays, Sparkles, BookPlus, Newspaper, MessageSquare, LogOut } from 'lucide-react';
 
 const ADMIN_NAV = [
-  { label: 'Đồng bộ Skoolib', to: '/admin/sync' },
-  { label: 'Sách mới', to: '/admin/new-books' },
-  { label: 'Lịch hoạt động', to: '/admin/schedules' },
-  { label: 'Sự kiện', to: '/admin/events' },
-  { label: 'Bài viết', to: '/admin/posts' },
-  { label: 'Đề xuất', to: '/admin/suggestions' },
+  { label: 'Lịch hoạt động', to: '/admin/schedules', icon: CalendarDays },
+  { label: 'Sự kiện', to: '/admin/events', icon: Sparkles },
+  { label: 'Sách mới', to: '/admin/new-books', icon: BookPlus },
+  { label: 'Bài viết', to: '/admin/posts', icon: Newspaper },
+  { label: 'Đề xuất', to: '/admin/suggestions', icon: MessageSquare },
 ];
 
 export default function AdminLayout() {
@@ -26,23 +26,25 @@ export default function AdminLayout() {
           <p className="text-white/50 text-xs mt-0.5 uppercase tracking-widest">Admin</p>
         </div>
         <nav className="flex-1 py-4">
-          {ADMIN_NAV.map((item) => (
+          {ADMIN_NAV.map(({ label, to, icon: Icon }) => (
             <NavLink
-              key={item.to}
-              to={item.to}
+              key={to}
+              to={to}
               className={({ isActive }) =>
-                `block px-5 py-3 text-sm font-semibold transition-colors ` +
+                `flex items-center gap-3 px-5 py-3 text-sm font-semibold transition-colors ` +
                 (isActive ? 'bg-yellow text-blue' : 'text-white/80 hover:bg-white/10')
               }
             >
-              {item.label}
+              <Icon size={16} className="shrink-0" />
+              {label}
             </NavLink>
           ))}
         </nav>
         <button
           onClick={logout}
-          className="px-5 py-4 text-xs text-white/40 hover:text-white text-left border-t border-white/10 transition-colors"
+          className="flex items-center gap-3 px-5 py-4 text-xs text-white/40 hover:text-white text-left border-t border-white/10 transition-colors"
         >
+          <LogOut size={14} className="shrink-0" />
           Đăng xuất
         </button>
       </aside>

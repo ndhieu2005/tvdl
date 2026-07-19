@@ -1,5 +1,3 @@
-import { Link } from 'react-router-dom';
-
 function MapsFillIcon({ className }) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 14.63 19.04" fill="currentColor" className={className}>

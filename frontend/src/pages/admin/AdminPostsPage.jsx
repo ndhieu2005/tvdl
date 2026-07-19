@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useRef, useState } from 'react';
 import { Plus, Pencil, Trash2, Check, Bold, Italic, List, ListOrdered, Heading2, Heading3, ImagePlus } from 'lucide-react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -6,6 +6,10 @@ import Image from '@tiptap/extension-image';
 import { adminApi } from '../../lib/api';
 import Modal from '../../components/Modal';
 import ImageUploadField from '../../components/ImageUploadField';
+import Pagination from '../../components/ui/Pagination';
+import { FormField, TextInput, TextArea } from '../../components/ui/FormField';
+import { useToast } from '../../components/ui/Toast';
+import useCrudList from '../../hooks/useCrudList';
 
 function ToolbarButton({ onClick, active, children, title }) {
   return (
@@ -46,14 +50,7 @@ function PostEditor({ editor, onInsertImage, uploading }) {
 const EMPTY_FORM = { title: '', summary: '', cover_image: '' };
 
 export default function AdminPostsPage() {
-  const [posts, setPosts] = useState([]);
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [loading, setLoading] = useState(false);
-  const [modal, setModal] = useState(null);
-  const [form, setForm] = useState(EMPTY_FORM);
-  const [editId, setEditId] = useState(null);
-  const [saving, setSaving] = useState(false);
+  const toast = useToast();
   const [uploading, setUploading] = useState(false);
   const imageInputRef = useRef(null);
 
@@ -62,40 +59,32 @@ export default function AdminPostsPage() {
     content: '',
   });
 
-  function fetchPosts(p = page) {
-    setLoading(true);
-    adminApi.get(`/posts?page=${p}&limit=20`)
-      .then((r) => {
-        setPosts(r.data.data || []);
-        setTotalPages(r.data.meta?.totalPages || 1);
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }
-
-  useEffect(() => { fetchPosts(page); }, [page]);
+  const crud = useCrudList({
+    endpoint: '/posts',
+    emptyForm: EMPTY_FORM,
+    confirmDelete: 'Xoá bài viết này?',
+  });
+  const { form, setForm } = crud;
 
   function openCreate() {
-    setForm(EMPTY_FORM);
     editor?.commands.setContent('');
-    setModal('create');
+    crud.openCreate();
   }
 
   async function openEdit(post) {
     try {
       const r = await adminApi.get(`/posts/${post.id}`);
       const full = r.data.data;
-      setForm({ title: full.title || '', summary: full.summary || '', cover_image: full.cover_image || '' });
       editor?.commands.setContent(full.content || '');
-      setEditId(post.id);
-      setModal('edit');
+      crud.openEdit({
+        id: full.id,
+        title: full.title || '',
+        summary: full.summary || '',
+        cover_image: full.cover_image || '',
+      });
     } catch (err) {
-      alert(err.response?.data?.message || 'Lỗi tải bài viết');
+      toast.error(err.response?.data?.message || 'Lỗi tải bài viết');
     }
-  }
-
-  async function handleInsertImage() {
-    imageInputRef.current?.click();
   }
 
   async function handleImageFile(e) {
@@ -110,41 +99,21 @@ export default function AdminPostsPage() {
       });
       editor?.chain().focus().setImage({ src: r.data.data.url }).run();
     } catch (err) {
-      alert(err.response?.data?.message || 'Upload ảnh thất bại');
+      toast.error(err.response?.data?.message || 'Upload ảnh thất bại');
     } finally {
       setUploading(false);
       e.target.value = '';
     }
   }
 
-  async function handleSave() {
+  function save() {
     const content = editor?.getHTML() || '';
     if (!form.title || !content || content === '<p></p>') {
-      alert('Cần nhập tiêu đề và nội dung bài viết');
+      toast.error('Cần nhập tiêu đề và nội dung bài viết');
       return;
     }
-    setSaving(true);
-    try {
-      const payload = { ...form, content };
-      if (modal === 'create') await adminApi.post('/posts', payload);
-      else await adminApi.put(`/posts/${editId}`, payload);
-      setModal(null);
-      fetchPosts(page);
-    } catch (err) {
-      alert(err.response?.data?.message || 'Lỗi');
-    } finally {
-      setSaving(false);
-    }
+    crud.handleSave((f) => ({ title: f.title, summary: f.summary, cover_image: f.cover_image, content }));
   }
-
-  async function handleDelete(id) {
-    if (!confirm('Xoá bài viết này?')) return;
-    await adminApi.delete(`/posts/${id}`).catch(() => {});
-    fetchPosts(page);
-  }
-
-  const inputCls = 'w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-blue outline-none';
-  const labelCls = 'block text-xs font-semibold text-blue uppercase tracking-wide mb-1';
 
   return (
     <div className="p-8">
@@ -155,13 +124,13 @@ export default function AdminPostsPage() {
         </button>
       </div>
 
-      {loading
+      {crud.loading
         ? <p className="text-muted text-sm">Đang tải...</p>
-        : posts.length === 0
+        : crud.items.length === 0
           ? <p className="text-muted text-sm italic">Chưa có bài viết nào</p>
           : (
             <div className="space-y-2">
-              {posts.map((p) => (
+              {crud.items.map((p) => (
                 <div key={p.id} className="flex items-center gap-4 bg-white border border-gray-200 rounded-xl px-5 py-3 hover:shadow-sm transition-shadow">
                   <div className="w-14 h-10 bg-cream rounded flex items-center justify-center shrink-0 overflow-hidden">
                     {p.cover_image ? <img src={p.cover_image} alt="" className="w-full h-full object-cover" /> : <span>📰</span>}
@@ -172,7 +141,7 @@ export default function AdminPostsPage() {
                   </div>
                   <div className="flex gap-2 shrink-0">
                     <button onClick={() => openEdit(p)} className="p-2 text-blue hover:bg-blue/10 rounded-lg transition-colors"><Pencil size={15} /></button>
-                    <button onClick={() => handleDelete(p.id)} className="p-2 text-red-400 hover:bg-red-50 rounded-lg transition-colors"><Trash2 size={15} /></button>
+                    <button onClick={() => crud.handleDelete(p.id)} className="p-2 text-red-400 hover:bg-red-50 rounded-lg transition-colors"><Trash2 size={15} /></button>
                   </div>
                 </div>
               ))}
@@ -180,39 +149,30 @@ export default function AdminPostsPage() {
           )
       }
 
-      {totalPages > 1 && (
-        <div className="flex gap-2 justify-center mt-6">
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-            <button key={p} onClick={() => setPage(p)} className={`w-8 h-8 rounded-lg text-sm font-semibold ${p === page ? 'bg-blue text-white' : 'border border-blue text-blue hover:bg-blue/10'}`}>{p}</button>
-          ))}
-        </div>
-      )}
+      <Pagination page={crud.page} totalPages={crud.totalPages} onChange={crud.setPage} />
 
-      {modal && (
-        <Modal wide title={modal === 'create' ? 'Đăng bài viết' : 'Chỉnh sửa bài viết'} onClose={() => setModal(null)}>
+      {crud.modal && (
+        <Modal wide title={crud.modal === 'create' ? 'Đăng bài viết' : 'Chỉnh sửa bài viết'} onClose={() => crud.setModal(null)}>
           <div className="space-y-3">
-            <div>
-              <label className={labelCls}>Tiêu đề bài viết *</label>
-              <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className={inputCls} />
-              {modal === 'create' && form.title && (
+            <FormField label="Tiêu đề bài viết" required>
+              <TextInput value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+              {crud.modal === 'create' && form.title && (
                 <p className="text-muted text-xs mt-1">Slug URL sẽ tự tạo từ tiêu đề</p>
               )}
-            </div>
-            <div>
-              <label className={labelCls}>Tóm tắt</label>
-              <textarea rows={2} value={form.summary} onChange={(e) => setForm({ ...form, summary: e.target.value })} className={`${inputCls} resize-none`} />
-            </div>
+            </FormField>
+            <FormField label="Tóm tắt">
+              <TextArea rows={2} value={form.summary} onChange={(e) => setForm({ ...form, summary: e.target.value })} />
+            </FormField>
             <ImageUploadField label="Ảnh bìa" value={form.cover_image} onChange={(url) => setForm({ ...form, cover_image: url })} />
-            <div>
-              <label className={labelCls}>Nội dung chính *</label>
-              <PostEditor editor={editor} onInsertImage={handleInsertImage} uploading={uploading} />
+            <FormField label="Nội dung chính" required>
+              <PostEditor editor={editor} onInsertImage={() => imageInputRef.current?.click()} uploading={uploading} />
               <input ref={imageInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={handleImageFile} className="hidden" />
-            </div>
+            </FormField>
           </div>
           <div className="flex justify-end gap-3 mt-5">
-            <button onClick={() => setModal(null)} className="px-4 py-2 text-sm text-muted hover:text-blue">Huỷ</button>
-            <button onClick={handleSave} disabled={saving} className="flex items-center gap-2 bg-blue text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-blue-light disabled:opacity-50">
-              <Check size={15} /> {saving ? 'Đang lưu...' : 'Lưu'}
+            <button onClick={() => crud.setModal(null)} className="px-4 py-2 text-sm text-muted hover:text-blue">Huỷ</button>
+            <button onClick={save} disabled={crud.saving} className="flex items-center gap-2 bg-blue text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-blue-light disabled:opacity-50">
+              <Check size={15} /> {crud.saving ? 'Đang lưu...' : 'Lưu'}
             </button>
           </div>
         </Modal>

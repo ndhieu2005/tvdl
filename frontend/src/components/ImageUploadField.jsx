@@ -6,11 +6,13 @@ import { adminApi } from '../lib/api';
 export default function ImageUploadField({ label, value, onChange }) {
   const inputRef = useRef(null);
   const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState(null);
 
   async function handleFile(e) {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploading(true);
+    setError(null);
     try {
       const formData = new FormData();
       formData.append('file', file);
@@ -19,7 +21,7 @@ export default function ImageUploadField({ label, value, onChange }) {
       });
       onChange(r.data.data.url);
     } catch (err) {
-      alert(err.response?.data?.message || 'Upload ảnh thất bại');
+      setError(err.response?.data?.message || 'Upload ảnh thất bại');
     } finally {
       setUploading(false);
       e.target.value = '';
@@ -46,6 +48,7 @@ export default function ImageUploadField({ label, value, onChange }) {
         </button>
         <input ref={inputRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={handleFile} className="hidden" />
       </div>
+      {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
       {value && (
         <img src={value} alt="preview" className="mt-2 h-20 rounded border border-gray-200 object-cover" />
       )}

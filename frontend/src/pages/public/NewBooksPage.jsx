@@ -66,9 +66,8 @@ export default function NewBooksPage() {
     [cursor]
   );
 
-  useEffect(() => {
-    fetchMore(true);
-  }, []);
+  // chỉ fetch trang đầu khi mount; fetchMore đổi theo cursor nên không đưa vào deps
+  useEffect(() => { fetchMore(true); }, []); // eslint-disable-line react-hooks/exhaustive-deps, react-hooks/set-state-in-effect
 
   return (
     <div className="min-h-[calc(100vh-64px)] py-5 sm:py-12">

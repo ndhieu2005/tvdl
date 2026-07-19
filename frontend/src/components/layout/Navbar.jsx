@@ -1,5 +1,5 @@
-import { useState, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import logoSvg from '../../assets/logo_gradient.svg';
 
@@ -41,7 +41,8 @@ function SearchIcon({ className }) {
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isServicesOpen, setIsServicesOpen] = useState(false);
-  const serviceMenuRef = useRef(null);
+  const { pathname } = useLocation();
+  const isActive = (to) => (to === '/' ? pathname === '/' : pathname.startsWith(to));
 
   return (
     <header className="w-full z-50 sticky top-0 bg-light-blue sm:bg-transparent">
@@ -55,33 +56,29 @@ export default function Navbar() {
 
         {/* Main menu (desktop) */}
         <ul className="hidden sm:flex flex-1 text-white text-base font-semibold">
-          <li className="flex-grow basis-auto bg-yellow duration-200 hover:bg-yellow-dark">
-            <Link to="/about" className="uppercase w-full h-full flex items-center justify-center">
+          <li className={`flex-grow basis-auto duration-200 ${isActive('/about') ? 'bg-yellow-dark' : 'bg-yellow hover:bg-yellow-dark'}`}>
+            <Link to="/about" aria-current={isActive('/about') ? 'page' : undefined} className="uppercase w-full h-full flex items-center justify-center">
               Về thư viện
             </Link>
           </li>
 
-          <li className="flex-grow basis-auto bg-blue duration-200 hover:bg-blue-light">
-            <Link to="/schedule" className="uppercase w-full h-full flex items-center justify-center">
+          <li className={`flex-grow basis-auto duration-200 ${isActive('/schedule') ? 'bg-blue-light' : 'bg-blue hover:bg-blue-light'}`}>
+            <Link to="/schedule" aria-current={isActive('/schedule') ? 'page' : undefined} className="uppercase w-full h-full flex items-center justify-center">
               Lịch hoạt động
             </Link>
           </li>
 
           <li
-            className="flex-grow basis-auto relative bg-yellow duration-200 hover:bg-yellow-dark flex items-center justify-center"
+            className={`flex-grow basis-auto relative duration-200 flex items-center justify-center ${isActive('/services') ? 'bg-yellow-dark' : 'bg-yellow hover:bg-yellow-dark'}`}
             onMouseEnter={() => setIsServicesOpen(true)}
             onMouseLeave={() => setIsServicesOpen(false)}
-            ref={serviceMenuRef}
           >
             <Link to="/services" className="w-full flex justify-center items-center gap-4 h-full">
               <span className="uppercase">Dịch vụ thư viện</span>
               <ShortArrowRightIcon className="h-3 w-auto rotate-90" />
             </Link>
             {isServicesOpen && (
-              <ul
-                className="absolute left-0 top-full bg-blue text-sm font-normal shadow-lg z-10"
-                style={{ width: serviceMenuRef.current?.offsetWidth || 'auto' }}
-              >
+              <ul className="absolute left-0 top-full w-full bg-blue text-sm font-normal shadow-lg z-10">
                 {SERVICES_SUBMENU.map((item) => (
                   <li key={item.text} className="border-b border-white/20 hover:text-yellow h-10">
                     {item.href ? (
@@ -101,8 +98,8 @@ export default function Navbar() {
             )}
           </li>
 
-          <li className="flex-grow basis-auto bg-blue duration-200 hover:bg-blue-light">
-            <Link to="/news" className="uppercase w-full h-full flex items-center justify-center">
+          <li className={`flex-grow basis-auto duration-200 ${isActive('/news') ? 'bg-blue-light' : 'bg-blue hover:bg-blue-light'}`}>
+            <Link to="/news" aria-current={isActive('/news') ? 'page' : undefined} className="uppercase w-full h-full flex items-center justify-center">
               Tin tức
             </Link>
           </li>
@@ -185,7 +182,10 @@ export default function Navbar() {
               <Link
                 key={item.name}
                 to={item.to}
-                className="text-blue border-t border-[#c9d7ec] block px-3 py-2 text-sm"
+                aria-current={isActive(item.to) ? 'page' : undefined}
+                className={`text-blue border-t border-[#c9d7ec] block px-3 py-2 text-sm ${
+                  isActive(item.to) ? 'font-bold border-l-4 border-l-yellow bg-white/40' : ''
+                }`}
                 onClick={() => setIsMenuOpen(false)}
               >
                 {item.name}

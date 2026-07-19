@@ -2,6 +2,8 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
 import PublicLayout from './components/layout/PublicLayout';
 import AdminLayout from './components/layout/AdminLayout';
+import { ToastProvider } from './components/ui/Toast';
+import { ConfirmProvider } from './components/ui/ConfirmDialog';
 
 import HubPage from './pages/public/HubPage';
 import AboutPage from './pages/public/AboutPage';
@@ -14,7 +16,6 @@ import PostsPage from './pages/public/PostsPage';
 import PostDetailPage from './pages/public/PostDetailPage';
 
 import LoginPage from './pages/admin/LoginPage';
-import SyncPage from './pages/admin/SyncPage';
 import AdminNewBooksPage from './pages/admin/AdminNewBooksPage';
 import AdminSchedulesPage from './pages/admin/AdminSchedulesPage';
 import AdminEventsPage from './pages/admin/AdminEventsPage';
@@ -29,6 +30,8 @@ function RequireAuth({ children }) {
 export default function App() {
   return (
     <BrowserRouter>
+      <ToastProvider>
+      <ConfirmProvider>
       <Routes>
         {/* Hub (no navbar) */}
         <Route path="/" element={<HubPage />} />
@@ -48,8 +51,7 @@ export default function App() {
         {/* Admin */}
         <Route path="/admin/login" element={<LoginPage />} />
         <Route path="/admin" element={<RequireAuth><AdminLayout /></RequireAuth>}>
-          <Route index element={<Navigate to="/admin/sync" replace />} />
-          <Route path="sync" element={<SyncPage />} />
+          <Route index element={<Navigate to="/admin/schedules" replace />} />
           <Route path="new-books" element={<AdminNewBooksPage />} />
           <Route path="schedules" element={<AdminSchedulesPage />} />
           <Route path="events" element={<AdminEventsPage />} />
@@ -57,6 +59,8 @@ export default function App() {
           <Route path="suggestions" element={<SuggestionsPage />} />
         </Route>
       </Routes>
+      </ConfirmProvider>
+      </ToastProvider>
     </BrowserRouter>
   );
 }

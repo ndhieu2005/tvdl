@@ -64,8 +64,8 @@ docker compose up -d --build              # Rebuild + restart thủ công
 **System tables** (seeded/managed manually):
 - `Admins`, `Age_Groups`, `Categories`, `Locations` — `Locations.type` distinguishes branches; `id=3` = Dự án lưu động
 
-**Skoolib-synced tables** (full delete + bulk insert monthly via transaction):
-- `Readers` (has `reader_code`), `Books` (has `category_id`) — Books → Categories is **1-N**
+**Legacy tables** (từng sync từ Skoolib — tính năng sync đã gỡ, data giữ nguyên):
+- `Readers` (has `reader_code`, vẫn dùng validate mã bạn đọc ở form Đề xuất), `Books` (has `category_id`) — Books → Categories is **1-N**
 
 **Website-generated tables**:
 - `New_Books` (has `category_id`), `Book_Suggestions`, `Schedule_Templates`
@@ -75,20 +75,20 @@ Soft-delete pattern (`deleted_at DateTime?`) used on: `Admins`, `Age_Groups`, `C
 
 ## Key Business Logic
 
-### Skoolib Sync Flow
-1. Admin uploads `.xlsx` file
-2. Parse Excel → auto-create any new `Categories` / `Age_Groups` if not exist
-3. Wrap in a **single DB transaction**: delete all `Books` + `Readers`, then bulk insert new data
-
 ### Schedule / Location Logic
 - If location is Cơ sở 1 or Cơ sở 2 → use foreign key to `Locations`
 - Otherwise → write free-text directly into `Schedules.custom_location_name`
+- `Schedule_Templates` định nghĩa lịch chuẩn theo thứ-trong-tuần (`day_of_week` 0=CN..6=T7); endpoint `POST /admin/schedules/generate {from,to}` sinh lịch từ templates, chống trùng theo `date + shift + time_frame`
+
+### Tra cứu sách
+- Frontend không có trang search nội bộ — mọi nút "Tra cứu" link thẳng sang Skoolib OPAC (tab mới)
+- Tính năng đồng bộ Skoolib (upload Excel) đã gỡ; API public `/books` vẫn tồn tại nhưng không có UI dùng
 
 ## Frontend Pages
 
-**Public**: HubPage (home menu), Book search, Activity schedule, New books, Services & Regulations
+**Public**: HubPage (home menu), Activity schedule (kèm events), New books, Posts (/news, /news/:slug), Services & Regulations
 
-**Admin** (JWT protected): Login, Skoolib sync (Excel upload), New books management, Schedule management, Suggestion statistics
+**Admin** (JWT protected): Login, Schedule management (kèm weekly templates + generate), Events, New books, Posts (TipTap editor), Suggestion statistics
 
 ## Backend Status
 

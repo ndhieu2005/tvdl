@@ -40,6 +40,7 @@ export default function SchedulePage() {
   }, [schedules]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch pattern: bật loading sync khi đổi tháng
     setLoading(true);
     Promise.all([
       api.get(`/schedules?month=${month + 1}&year=${year}`),

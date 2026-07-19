@@ -108,25 +108,25 @@ model Book_Suggestions {
 }
 
 model Schedule_Templates {
-  id                   Int       @id @default(autoincrement())
+  id                   Int        @id @default(autoincrement())
   day_of_week          Int
-  shift                String    @db.VarChar(20)
-  time_frame           String    @db.VarChar(50)
-  location_id          Int
-  custom_location_name String?   @db.VarChar(255)
-  location             Locations @relation(fields: [location_id], references: [id])
+  shift                String     @db.VarChar(20)
+  time_frame           String     @db.VarChar(50)
+  location_id          Int?
+  custom_location_name String?    @db.VarChar(255)
+  location             Locations? @relation(fields: [location_id], references: [id])
 }
 
 model Schedules {
-  id                   Int       @id @default(autoincrement())
-  date                 DateTime  @db.Date
-  shift                String    @db.VarChar(20)
-  time_frame           String    @db.VarChar(50)
-  location_id          Int
-  custom_location_name String?   @db.VarChar(255)
-  is_sudden_closed     Boolean   @default(false)
-  closed_reason        String?   @db.Text
-  location             Locations @relation(fields: [location_id], references: [id])
+  id                   Int        @id @default(autoincrement())
+  date                 DateTime   @db.Date
+  shift                String     @db.VarChar(20)
+  time_frame           String     @db.VarChar(50)
+  location_id          Int?
+  custom_location_name String?    @db.VarChar(255)
+  is_sudden_closed     Boolean    @default(false)
+  closed_reason        String?    @db.Text
+  location             Locations? @relation(fields: [location_id], references: [id])
 }
 
 model Events {

@@ -1,7 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Plus, Pencil, Trash2, Check, Star } from 'lucide-react';
-import { adminApi, api } from '../../lib/api';
+import { api } from '../../lib/api';
 import Modal from '../../components/Modal';
+import Pagination from '../../components/ui/Pagination';
+import { FormField, TextInput, Select, TextArea } from '../../components/ui/FormField';
+import { useToast } from '../../components/ui/Toast';
+import useCrudList from '../../hooks/useCrudList';
 
 const EVENT_COLORS = ['#1B3F8B', '#F5C000', '#2E7D32', '#E65100', '#6A1B9A', '#C62828'];
 
@@ -12,114 +16,78 @@ const EMPTY_FORM = {
   is_featured: false, color: '',
 };
 
-// Ghép date + time thành ISO; trả null nếu thiếu
+const pad = (n) => String(n).padStart(2, '0');
+
 function toDatetime(date, time) {
   if (!date || !time) return null;
   return `${date}T${time}:00`;
 }
 
 export default function AdminEventsPage() {
-  const [events, setEvents] = useState([]);
+  const toast = useToast();
   const [locations, setLocations] = useState([]);
   const [ageGroups, setAgeGroups] = useState([]);
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [loading, setLoading] = useState(false);
-  const [modal, setModal] = useState(null);
-  const [form, setForm] = useState(EMPTY_FORM);
-  const [editId, setEditId] = useState(null);
-  const [saving, setSaving] = useState(false);
 
-  function fetchEvents(p = page) {
-    setLoading(true);
-    adminApi.get(`/events?page=${p}&limit=20`)
-      .then((r) => {
-        setEvents(r.data.data || []);
-        setTotalPages(r.data.meta?.totalPages || 1);
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }
+  const crud = useCrudList({
+    endpoint: '/events',
+    emptyForm: EMPTY_FORM,
+    confirmDelete: 'Xoá sự kiện này?',
+    toForm: (ev) => {
+      const start = ev.event_datetime ? new Date(ev.event_datetime) : null;
+      const end = ev.end_datetime ? new Date(ev.end_datetime) : null;
+      return {
+        name: ev.name || '',
+        date: start ? `${start.getFullYear()}-${pad(start.getMonth() + 1)}-${pad(start.getDate())}` : '',
+        start_time: start ? `${pad(start.getHours())}:${pad(start.getMinutes())}` : '',
+        end_time: end ? `${pad(end.getHours())}:${pad(end.getMinutes())}` : '',
+        location_id: ev.location?.id || '',
+        custom_location_name: ev.custom_location_name || '',
+        target_age_group_id: ev.target_age_group?.id || '',
+        seat_count: ev.seat_count ?? '',
+        organizer: ev.organizer || '',
+        description: ev.description || '',
+        is_featured: ev.is_featured || false,
+        color: ev.color || '',
+      };
+    },
+  });
+  const { items: events, form, setForm } = crud;
 
-  useEffect(() => { fetchEvents(page); }, [page]);
   useEffect(() => {
     api.get('/locations').then((r) => setLocations(r.data.data || [])).catch(() => {});
     api.get('/age-groups').then((r) => setAgeGroups(r.data.data || [])).catch(() => {});
   }, []);
 
-  function openCreate() { setForm(EMPTY_FORM); setModal('create'); }
-  function openEdit(ev) {
-    const start = ev.event_datetime ? new Date(ev.event_datetime) : null;
-    const end = ev.end_datetime ? new Date(ev.end_datetime) : null;
-    const pad = (n) => String(n).padStart(2, '0');
-    setForm({
-      name: ev.name || '',
-      date: start ? `${start.getFullYear()}-${pad(start.getMonth() + 1)}-${pad(start.getDate())}` : '',
-      start_time: start ? `${pad(start.getHours())}:${pad(start.getMinutes())}` : '',
-      end_time: end ? `${pad(end.getHours())}:${pad(end.getMinutes())}` : '',
-      location_id: ev.location?.id || '',
-      custom_location_name: ev.custom_location_name || '',
-      target_age_group_id: ev.target_age_group?.id || '',
-      seat_count: ev.seat_count ?? '',
-      organizer: ev.organizer || '',
-      description: ev.description || '',
-      is_featured: ev.is_featured || false,
-      color: ev.color || '',
-    });
-    setEditId(ev.id);
-    setModal('edit');
-  }
-
-  async function handleSave() {
+  function save() {
     if (!form.name || !form.date || !form.start_time) {
-      alert('Cần nhập tối thiểu: tiêu đề, ngày và giờ bắt đầu');
+      toast.error('Cần nhập tối thiểu: tiêu đề, ngày và giờ bắt đầu');
       return;
     }
-    setSaving(true);
-    try {
-      const payload = {
-        name: form.name,
-        event_datetime: toDatetime(form.date, form.start_time),
-        end_datetime: toDatetime(form.date, form.end_time),
-        location_id: form.location_id || null,
-        custom_location_name: form.location_id ? null : (form.custom_location_name || null),
-        target_age_group_id: form.target_age_group_id || null,
-        seat_count: form.seat_count || null,
-        organizer: form.organizer || null,
-        description: form.description || null,
-        is_featured: form.is_featured,
-        color: form.color || null,
-      };
-      if (modal === 'create') await adminApi.post('/events', payload);
-      else await adminApi.put(`/events/${editId}`, payload);
-      setModal(null);
-      fetchEvents(page);
-    } catch (err) {
-      alert(err.response?.data?.message || 'Lỗi');
-    } finally {
-      setSaving(false);
-    }
+    crud.handleSave((f) => ({
+      name: f.name,
+      event_datetime: toDatetime(f.date, f.start_time),
+      end_datetime: toDatetime(f.date, f.end_time),
+      location_id: f.location_id || null,
+      custom_location_name: f.location_id ? null : (f.custom_location_name || null),
+      target_age_group_id: f.target_age_group_id || null,
+      seat_count: f.seat_count || null,
+      organizer: f.organizer || null,
+      description: f.description || null,
+      is_featured: f.is_featured,
+      color: f.color || null,
+    }));
   }
-
-  async function handleDelete(id) {
-    if (!confirm('Xoá sự kiện này?')) return;
-    await adminApi.delete(`/events/${id}`).catch(() => {});
-    fetchEvents(page);
-  }
-
-  const inputCls = 'w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-blue outline-none';
-  const labelCls = 'block text-xs font-semibold text-blue uppercase tracking-wide mb-1';
 
   return (
     <div className="p-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-blue">Sự kiện</h1>
-        <button onClick={openCreate} className="flex items-center gap-2 bg-blue text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-blue-light transition-colors">
+        <button onClick={() => crud.openCreate()} className="flex items-center gap-2 bg-blue text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-blue-light transition-colors">
           <Plus size={16} /> Thêm sự kiện
         </button>
       </div>
 
-      {loading
+      {crud.loading
         ? <p className="text-muted text-sm">Đang tải...</p>
         : events.length === 0
           ? <p className="text-muted text-sm italic">Chưa có sự kiện nào</p>
@@ -142,8 +110,8 @@ export default function AdminEventsPage() {
                     </p>
                   </div>
                   <div className="flex gap-2 shrink-0">
-                    <button onClick={() => openEdit(ev)} className="p-2 text-blue hover:bg-blue/10 rounded-lg transition-colors"><Pencil size={15} /></button>
-                    <button onClick={() => handleDelete(ev.id)} className="p-2 text-red-400 hover:bg-red-50 rounded-lg transition-colors"><Trash2 size={15} /></button>
+                    <button onClick={() => crud.openEdit(ev)} className="p-2 text-blue hover:bg-blue/10 rounded-lg transition-colors"><Pencil size={15} /></button>
+                    <button onClick={() => crud.handleDelete(ev.id)} className="p-2 text-red-400 hover:bg-red-50 rounded-lg transition-colors"><Trash2 size={15} /></button>
                   </div>
                 </div>
               ))}
@@ -151,71 +119,54 @@ export default function AdminEventsPage() {
           )
       }
 
-      {totalPages > 1 && (
-        <div className="flex gap-2 justify-center mt-6">
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-            <button key={p} onClick={() => setPage(p)} className={`w-8 h-8 rounded-lg text-sm font-semibold ${p === page ? 'bg-blue text-white' : 'border border-blue text-blue hover:bg-blue/10'}`}>{p}</button>
-          ))}
-        </div>
-      )}
+      <Pagination page={crud.page} totalPages={crud.totalPages} onChange={crud.setPage} />
 
-      {modal && (
-        <Modal title={modal === 'create' ? 'Thêm sự kiện' : 'Chỉnh sửa sự kiện'} onClose={() => setModal(null)}>
+      {crud.modal && (
+        <Modal title={crud.modal === 'create' ? 'Thêm sự kiện' : 'Chỉnh sửa sự kiện'} onClose={() => crud.setModal(null)}>
           <div className="space-y-3">
-            <div>
-              <label className={labelCls}>Tiêu đề sự kiện *</label>
-              <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={inputCls} />
-            </div>
+            <FormField label="Tiêu đề sự kiện" required>
+              <TextInput value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+            </FormField>
             <div className="grid grid-cols-3 gap-3">
-              <div>
-                <label className={labelCls}>Ngày tổ chức *</label>
-                <input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} className={inputCls} />
-              </div>
-              <div>
-                <label className={labelCls}>Giờ bắt đầu *</label>
-                <input type="time" value={form.start_time} onChange={(e) => setForm({ ...form, start_time: e.target.value })} className={inputCls} />
-              </div>
-              <div>
-                <label className={labelCls}>Giờ kết thúc</label>
-                <input type="time" value={form.end_time} onChange={(e) => setForm({ ...form, end_time: e.target.value })} className={inputCls} />
-              </div>
+              <FormField label="Ngày tổ chức" required>
+                <TextInput type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} />
+              </FormField>
+              <FormField label="Giờ bắt đầu" required>
+                <TextInput type="time" value={form.start_time} onChange={(e) => setForm({ ...form, start_time: e.target.value })} />
+              </FormField>
+              <FormField label="Giờ kết thúc">
+                <TextInput type="time" value={form.end_time} onChange={(e) => setForm({ ...form, end_time: e.target.value })} />
+              </FormField>
             </div>
-            <div>
-              <label className={labelCls}>Địa điểm</label>
-              <select value={form.location_id} onChange={(e) => setForm({ ...form, location_id: e.target.value })} className={inputCls}>
+            <FormField label="Địa điểm">
+              <Select value={form.location_id} onChange={(e) => setForm({ ...form, location_id: e.target.value })}>
                 <option value="">Khác (nhập tay bên dưới)</option>
                 {locations.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
-              </select>
-            </div>
+              </Select>
+            </FormField>
             {!form.location_id && (
-              <div>
-                <label className={labelCls}>Tên địa điểm tùy chỉnh</label>
-                <input value={form.custom_location_name} onChange={(e) => setForm({ ...form, custom_location_name: e.target.value })} className={inputCls} />
-              </div>
+              <FormField label="Tên địa điểm tùy chỉnh">
+                <TextInput value={form.custom_location_name} onChange={(e) => setForm({ ...form, custom_location_name: e.target.value })} />
+              </FormField>
             )}
             <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className={labelCls}>Nhóm tuổi</label>
-                <select value={form.target_age_group_id} onChange={(e) => setForm({ ...form, target_age_group_id: e.target.value })} className={inputCls}>
+              <FormField label="Nhóm tuổi">
+                <Select value={form.target_age_group_id} onChange={(e) => setForm({ ...form, target_age_group_id: e.target.value })}>
                   <option value="">Tất cả</option>
                   {ageGroups.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className={labelCls}>Số người tối đa</label>
-                <input type="number" min="0" value={form.seat_count} onChange={(e) => setForm({ ...form, seat_count: e.target.value })} className={inputCls} />
-              </div>
+                </Select>
+              </FormField>
+              <FormField label="Số người tối đa">
+                <TextInput type="number" min="0" value={form.seat_count} onChange={(e) => setForm({ ...form, seat_count: e.target.value })} />
+              </FormField>
             </div>
-            <div>
-              <label className={labelCls}>Đơn vị tổ chức</label>
-              <input value={form.organizer} onChange={(e) => setForm({ ...form, organizer: e.target.value })} className={inputCls} />
-            </div>
-            <div>
-              <label className={labelCls}>Mô tả</label>
-              <textarea rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className={`${inputCls} resize-none`} />
-            </div>
-            <div>
-              <label className={labelCls}>Màu hiển thị trên lịch</label>
+            <FormField label="Đơn vị tổ chức">
+              <TextInput value={form.organizer} onChange={(e) => setForm({ ...form, organizer: e.target.value })} />
+            </FormField>
+            <FormField label="Mô tả">
+              <TextArea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+            </FormField>
+            <FormField label="Màu hiển thị trên lịch">
               <div className="flex gap-2">
                 {EVENT_COLORS.map((c) => (
                   <button
@@ -228,7 +179,7 @@ export default function AdminEventsPage() {
                   />
                 ))}
               </div>
-            </div>
+            </FormField>
             <label className="flex items-center gap-2 cursor-pointer">
               <input type="checkbox" checked={form.is_featured} onChange={(e) => setForm({ ...form, is_featured: e.target.checked })} className="accent-blue" />
               <span className="text-sm text-blue font-medium flex items-center gap-1">
@@ -237,9 +188,9 @@ export default function AdminEventsPage() {
             </label>
           </div>
           <div className="flex justify-end gap-3 mt-5">
-            <button onClick={() => setModal(null)} className="px-4 py-2 text-sm text-muted hover:text-blue">Huỷ</button>
-            <button onClick={handleSave} disabled={saving} className="flex items-center gap-2 bg-blue text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-blue-light disabled:opacity-50">
-              <Check size={15} /> {saving ? 'Đang lưu...' : 'Lưu'}
+            <button onClick={() => crud.setModal(null)} className="px-4 py-2 text-sm text-muted hover:text-blue">Huỷ</button>
+            <button onClick={save} disabled={crud.saving} className="flex items-center gap-2 bg-blue text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-blue-light disabled:opacity-50">
+              <Check size={15} /> {crud.saving ? 'Đang lưu...' : 'Lưu'}
             </button>
           </div>
         </Modal>

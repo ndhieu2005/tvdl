@@ -31,7 +31,7 @@ Website portal thông tin cho thư viện cộng đồng (~2.000 lượt/tháng)
 │   │   │   │   └── suggestions.js  # POST (gửi đề xuất sách)
 │   │   │   └── admin/           # JWT required
 │   │   │       ├── auth.js      # POST /login
-│   │   │       ├── sync.js      # POST upload .xlsx Skoolib
+│   │   │       ├── scheduleTemplates.js  # CRUD lịch chuẩn tuần
 │   │   │       ├── newBooks.js  # CRUD
 │   │   │       ├── schedules.js # CRUD
 │   │   │       └── suggestions.js  # GET (xem danh sách)
@@ -60,7 +60,6 @@ Website portal thông tin cho thư viện cộng đồng (~2.000 lượt/tháng)
     │       │   └── ServicesPage.jsx # "/services"
     │       └── admin/
     │           ├── LoginPage.jsx
-    │           ├── SyncPage.jsx          # upload Excel Skoolib
     │           ├── AdminNewBooksPage.jsx # CRUD sách mới
     │           ├── AdminSchedulesPage.jsx # CRUD lịch
     │           └── SuggestionsPage.jsx   # xem đề xuất sách
@@ -168,9 +167,13 @@ POST /admin/auth/login
      body: { username, password }
      → { status, data: { token } }
 
-POST /admin/sync
-     multipart/form-data: file (.xlsx Skoolib)
-     → { status, message }
+POST /admin/schedules/bulk
+     body: { dates[], shift, time_frame, location_id?, custom_location_name? }
+     → { status, data: { created } }
+
+POST /admin/schedules/generate
+     body: { from, to }   # sinh lịch từ Schedule_Templates, chống trùng
+     → { status, data: { created, skipped } }
 
 GET  /admin/new-books?page=&limit=
      → { status, data: NewBook[], meta: { total, totalPages } }
@@ -286,7 +289,7 @@ File: `frontend/src/pages/public/SchedulePage.jsx`
 - Tạo component `frontend/src/components/ui/Toast.jsx` — hiện message 3 giây rồi tự ẩn  
 - Variants: `success` (nền xanh), `error` (nền đỏ)  
 - Thay tất cả `alert()` và `window.confirm()` trong admin pages bằng toast + confirm dialog đẹp  
-- Files cần sửa: `AdminNewBooksPage.jsx`, `AdminSchedulesPage.jsx`, `SyncPage.jsx`
+- Files cần sửa: `AdminNewBooksPage.jsx`, `AdminSchedulesPage.jsx`
 
 **4b. Form validation inline**  
 - Trong các modal form của admin, validate trước khi submit  

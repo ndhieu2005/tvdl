@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { adminApi } from '../../lib/api';
+import Pagination from '../../components/ui/Pagination';
 
 export default function SuggestionsPage() {
   const [suggestions, setSuggestions] = useState([]);
@@ -9,6 +10,7 @@ export default function SuggestionsPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch pattern: bật loading sync khi đổi trang
     setLoading(true);
     adminApi.get(`/suggestions?page=${page}&limit=20`)
       .then((r) => {
@@ -60,13 +62,7 @@ export default function SuggestionsPage() {
           )
       }
 
-      {totalPages > 1 && (
-        <div className="flex gap-2 justify-center mt-6">
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-            <button key={p} onClick={() => setPage(p)} className={`w-8 h-8 rounded-lg text-sm font-semibold ${p === page ? 'bg-blue text-white' : 'border border-blue text-blue hover:bg-blue/10'}`}>{p}</button>
-          ))}
-        </div>
-      )}
+      <Pagination page={page} totalPages={totalPages} onChange={setPage} />
     </div>
   );
 }

@@ -8,6 +8,7 @@ export default function PostDetailPage() {
   const [status, setStatus] = useState('loading'); // loading | ok | notfound
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch pattern: reset về loading khi đổi slug
     setStatus('loading');
     api.get(`/posts/${slug}`)
       .then((r) => {

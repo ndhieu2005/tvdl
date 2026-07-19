@@ -1,8 +1,11 @@
 import axios from 'axios';
 
-const api = axios.create({ baseURL: '/api/v1' });
+// Mặc định đi qua proxy (Vite dev / nginx); đặt VITE_API_URL khi backend ở origin khác
+const API_BASE = import.meta.env.VITE_API_URL || '/api/v1';
 
-const adminApi = axios.create({ baseURL: '/api/v1/admin' });
+const api = axios.create({ baseURL: API_BASE });
+
+const adminApi = axios.create({ baseURL: `${API_BASE}/admin` });
 
 adminApi.interceptors.request.use((config) => {
   const token = localStorage.getItem('tvdl_token');
