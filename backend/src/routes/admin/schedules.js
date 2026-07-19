@@ -25,7 +25,7 @@ router.get('/', async (req, res, next) => {
         is_sudden_closed: true,
         closed_reason: true,
         custom_location_name: true,
-        location: { select: { id: true, name: true, color_code: true } },
+        location: { select: { id: true, name: true, color_code: true, address: true } },
       },
     });
 

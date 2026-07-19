@@ -5,8 +5,8 @@ async function main() {
   // Locations
   await prisma.locations.createMany({
     data: [
-      { name: 'Cơ sở 1', type: 'branch', color_code: '#3B82F6' },
-      { name: 'Cơ sở 2', type: 'branch', color_code: '#10B981' },
+      { name: 'Cơ sở 1', type: 'branch', color_code: '#3B82F6', address: '18/56 Đường Thống Nhất, Thôn Thống Nhất, Dương Hòa, TP Hà Nội' },
+      { name: 'Cơ sở 2', type: 'branch', color_code: '#10B981', address: '28 Đường Thanh Niên, Thôn Me Táo, Dương Hòa, TP Hà Nội' },
       { name: 'Dự án lưu động', type: 'mobile', color_code: '#F59E0B' },
     ],
     skipDuplicates: true,

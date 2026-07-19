@@ -13,7 +13,7 @@ const EVENT_SELECT = {
   organizer: true,
   description: true,
   custom_location_name: true,
-  location: { select: { id: true, name: true } },
+  location: { select: { id: true, name: true, address: true } },
   target_age_group: { select: { id: true, name: true } },
 };
 

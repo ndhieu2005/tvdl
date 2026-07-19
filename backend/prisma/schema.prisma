@@ -41,6 +41,7 @@ model Locations {
   name               String               @unique @db.VarChar(100)
   type               String               @db.VarChar(50)
   color_code         String?              @db.VarChar(10)
+  address            String?              @db.VarChar(255)
   deleted_at         DateTime?
   books              Books[]
   new_books          New_Books[]

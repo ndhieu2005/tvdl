@@ -8,7 +8,7 @@ const TEMPLATE_SELECT = {
   shift: true,
   time_frame: true,
   custom_location_name: true,
-  location: { select: { id: true, name: true, color_code: true } },
+  location: { select: { id: true, name: true, color_code: true, address: true } },
 };
 
 function validDayOfWeek(v) {

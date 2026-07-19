@@ -337,7 +337,10 @@ export default function AdminSchedulesPage() {
                       {new Date(s.date).toLocaleDateString('vi-VN')} — {s.time_frame}
                       {s.is_sudden_closed && <span className="ml-2 text-red-500 text-xs font-medium">⚠ Đóng đột xuất</span>}
                     </p>
-                    <p className="text-muted text-xs">{SHIFT_LABELS[s.shift] || s.shift} · {s.location?.name || s.custom_location_name}</p>
+                    <p className="text-muted text-xs">
+                      Ca {(SHIFT_LABELS[s.shift] || s.shift).toLowerCase()} · {s.location?.name || s.custom_location_name}
+                      {s.location?.address && ` — ${s.location.address}`}
+                    </p>
                     {s.closed_reason && <p className="text-red-400 text-xs mt-0.5">{s.closed_reason}</p>}
                   </div>
                   <div className="flex gap-2 shrink-0">
@@ -383,8 +386,11 @@ export default function AdminSchedulesPage() {
                     {weekdayName(t.day_of_week)}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-blue">{t.time_frame} · {SHIFT_LABELS[t.shift] || t.shift}</p>
-                    <p className="text-muted text-xs truncate">{t.location?.name || t.custom_location_name}</p>
+                    <p className="text-sm font-semibold text-blue">{t.time_frame} · Ca {(SHIFT_LABELS[t.shift] || t.shift).toLowerCase()}</p>
+                    <p className="text-muted text-xs truncate" title={t.location?.address || undefined}>
+                      {t.location?.name || t.custom_location_name}
+                      {t.location?.address && ` — ${t.location.address}`}
+                    </p>
                   </div>
                   <div className="flex gap-1 shrink-0">
                     <button onClick={() => openEditTemplate(t)} className="p-1.5 text-blue hover:bg-blue/10 rounded"><Pencil size={13} /></button>

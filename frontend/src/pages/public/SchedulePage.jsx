@@ -12,6 +12,13 @@ const MONTH_NAMES = [
   'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12',
 ];
 const WEEKDAY_LABELS = ['THỨ 2', 'THỨ 3', 'THỨ 4', 'THỨ 5', 'THỨ 6', 'THỨ 7', 'CHỦ NHẬT'];
+const SHIFT_LABELS = { morning: 'Ca sáng', afternoon: 'Ca chiều', evening: 'Ca tối' };
+
+// "Cơ sở 1 — 18/56 Đường Thống Nhất..." hoặc tên địa điểm tự nhập
+function formatLocation(loc, customName) {
+  if (!loc) return customName || '';
+  return loc.address ? `${loc.name} — ${loc.address}` : loc.name;
+}
 
 const TODAY = new Date();
 
@@ -246,8 +253,8 @@ export default function SchedulePage() {
                               <div className="hidden group-hover:block absolute z-20 top-full left-1/2 -translate-x-1/2 mt-1 w-max max-w-[240px] bg-white border border-[#424241] rounded p-2.5 text-left shadow-lg pointer-events-none">
                                 {daySchedules.map((s) => (
                                   <div key={s.id} className="text-[11px] leading-snug text-[#2B2B2B] py-0.5">
-                                    <span className="font-bold text-blue">{s.time_frame}</span>
-                                    {' · '}{s.location?.name || s.custom_location_name}
+                                    <span className="font-bold text-blue">{s.time_frame} ({SHIFT_LABELS[s.shift] || s.shift})</span>
+                                    {' · '}{formatLocation(s.location, s.custom_location_name)}
                                     {s.is_sudden_closed && <span className="text-red-500 font-medium"> — đóng đột xuất</span>}
                                   </div>
                                 ))}
@@ -318,7 +325,7 @@ export default function SchedulePage() {
                       )}
                     </h4>
                     <div className="text-xs sm:text-sm text-[#3F3F3F] font-light">
-                      {formatTimeRange(ev)} · {ev.location?.name || ev.custom_location_name || ''}
+                      {formatTimeRange(ev)} · {formatLocation(ev.location, ev.custom_location_name)}
                     </div>
                     {ev.description && (
                       <p className="text-xs text-[#9CA3AF] mt-0.5 line-clamp-2">{ev.description}</p>
@@ -338,10 +345,10 @@ export default function SchedulePage() {
                       {new Date(s.date).toLocaleDateString('vi-VN')}
                     </p>
                     <h4 className="font-bold text-yellow mb-1">
-                      {s.time_frame} — {s.shift}
+                      {s.time_frame} — {SHIFT_LABELS[s.shift] || s.shift}
                     </h4>
                     <div className="text-xs sm:text-sm text-[#3F3F3F] font-light">
-                      {s.location?.name || s.custom_location_name}
+                      {formatLocation(s.location, s.custom_location_name)}
                     </div>
                     {s.is_sudden_closed && (
                       <p className="text-xs text-red-500 font-medium mt-0.5">

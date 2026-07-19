@@ -8,7 +8,7 @@ router.get('/', async (req, res, next) => {
     const locations = await prisma.locations.findMany({
       where: { deleted_at: null },
       orderBy: { id: 'asc' },
-      select: { id: true, name: true, type: true, color_code: true },
+      select: { id: true, name: true, type: true, color_code: true, address: true },
     });
 
     return success(res, locations);
