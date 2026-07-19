@@ -92,15 +92,11 @@ Soft-delete pattern (`deleted_at DateTime?`) used on: `Admins`, `Age_Groups`, `C
 
 ## Backend Status
 
-**Tất cả routes hoàn chỉnh — 28/28 API tests pass**
+**Tất cả routes hoàn chỉnh — 48/48 API tests pass**
 
 ```bash
 cd backend && bash scripts/test-api.sh   # Requires backend running + seeded DB
 ```
-
-### Còn lại trước khi deploy lên VPS
-- [x] **Seed production DB**: job `seed_db` manual trong GitLab CI — trigger 1 lần sau deploy đầu tiên
-- [x] **Update `.gitlab-ci.yml`**: migrate DB tự động mỗi deploy; `npm run build` frontend đã có
 
 ## Frontend Design System
 
@@ -116,57 +112,21 @@ Font: **Be Vietnam Pro** (Google Fonts)
 
 Nguyên tắc: flat design, không shadow/gradient, chỉ 2 màu chủ, arrow `→` làm affordance, label UPPERCASE + tracking.
 
-## Frontend Roadmap (thứ tự thực hiện)
+## Frontend Roadmap
 
-### ✅ Phase 0 — Skeleton (DONE)
-- Vite + React + Tailwind v4 + React Router + Axios
-- Tất cả pages và routes đã có (public + admin)
-- API integration đã nối, auth guard đã có
-- Build thành công, 0 lỗi
+### ✅ Đã xong (cập nhật 07/2026)
+- **Phase 0 — Skeleton**: Vite + React + Tailwind v4 + Router + Axios, đủ pages/routes public + admin, auth guard
+- **Phase 1 — Foundation**: title + favicon thật, font Be Vietnam Pro, `VITE_API_URL` qua env (fallback `/api/v1` cho proxy)
+- **Phase 2 — Responsive cơ bản**: HubPage hero + tiles mobile 1 cột, calendar SchedulePage responsive, NewBooks nút "Xem thêm"
+- **Phase 3 — Navbar**: hamburger mobile, dropdown Dịch vụ, active state theo route (`aria-current`)
+- **Phase 4 — Admin**: Toast + ConfirmDialog thay `alert()`/`confirm()` trần, bộ UI dùng chung (`FormField`, `Pagination`, hook `useCrudList`), upload ảnh báo lỗi inline
+- **Phase 5 — Pre-deploy**: meta description + OG tags, nginx SPA fallback, CI build + deploy qua GitHub Actions
+- **Yêu cầu client 07/2026** (file docx): Events đủ trường + chọn màu (6 preset) + toggle nổi bật; Posts TipTap + tóm tắt + ảnh bìa; mọi nút tra cứu → Skoolib OPAC; New books đủ trường + upload file (`/admin/uploads`, multer); lịch public tô vàng + sao + badge "Nổi bật" cho sự kiện featured
 
-### ⏳ Phase 1 — Foundation Fix
-- [ ] Verify Tailwind v4 color/font tokens apply đúng trên browser
-- [ ] `index.html`: title "Thư viện Dương Liễu", favicon
-- [ ] Setup `VITE_API_URL` qua `.env`
-- [ ] Test font Be Vietnam Pro load đúng
-
-### ⏳ Phase 2 — Page Polish (theo thứ tự ưu tiên)
-
-#### 2a. HubPage
-- [ ] Full viewport height trừ navbar
-- [ ] Hero text scale responsive (hiện `6rem` cứng)
-- [ ] Mobile: tiles xếp 1 cột
-
-#### 2b. Lịch hoạt động
-- [ ] Calendar cell height responsive
-- [ ] Mobile: ẩn grid, chỉ hiện danh sách
-- [ ] Tooltip khi hover ca có lịch
-
-#### 2c. Tra cứu sách
-- [ ] UI filter Age Group + Category
+### ⏳ Còn lại (làm khi có yêu cầu)
+- [ ] Mobile SchedulePage: calendar grid đang tràn ngang màn hình hẹp — nên ẩn grid, chỉ hiện danh sách
+- [ ] NewBooks: infinite scroll tự động (hiện dùng nút "Xem thêm")
+- [ ] Form validation inline cho admin (`FormField` chưa có prop error; mới chỉ LoginPage hiển thị lỗi)
 - [ ] Skeleton loading thay text "Đang tải"
-- [ ] Empty state đẹp
-
-#### 2d. Sách mới
-- [ ] Infinite scroll tự động (bỏ nút "Xem thêm")
-- [ ] Ảnh placeholder đúng tỉ lệ
-
-#### 2e. Về Thư viện & Dịch vụ
-- [ ] Chờ content/illustration từ client
-
-### ⏳ Phase 3 — Navbar & Navigation
-- [ ] Active state đúng route
-- [ ] Mobile: hamburger hoặc bottom nav
-- [ ] Dropdown "Dịch vụ" nếu có submenu
-
-### ⏳ Phase 4 — Admin Polish
-- [ ] Toast notification thay `alert()`
-- [ ] Form validation hiển thị inline
-- [ ] Logo thật khi có file
-
-### ⏳ Phase 5 — Pre-deploy
-- [ ] `<meta>` SEO: title, description, OG tags
-- [ ] Favicon thật
-- [ ] Test mobile thực tế
-- [ ] Nginx config: serve `dist/` + fallback `index.html` cho SPA
-- [ ] Update `.gitlab-ci.yml`: build frontend trước khi deploy
+- [ ] Tooltip khi hover ca có lịch trên calendar public
+- [ ] Trang Về Thư viện & Dịch vụ: chờ content/illustration từ client
