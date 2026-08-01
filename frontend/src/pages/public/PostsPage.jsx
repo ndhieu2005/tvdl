@@ -46,11 +46,14 @@ function PostCard({ post }) {
 export default function PostsPage() {
   const [posts, setPosts] = useState([]);
   const [cursor, setCursor] = useState(null);
-  const [hasMore, setHasMore] = useState(true);
+  const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(false);
+  const fetchingRef = useRef(false);
 
   const fetchMore = useCallback(
     (reset = false) => {
+      if (fetchingRef.current) return;
+      fetchingRef.current = true;
       setLoading(true);
       const params = new URLSearchParams({ limit: 12 });
       if (!reset && cursor) params.set('cursor', cursor);
@@ -63,13 +66,16 @@ export default function PostsPage() {
           setHasMore(!!meta?.nextCursor);
         })
         .catch(() => {})
-        .finally(() => setLoading(false));
+        .finally(() => {
+          setLoading(false);
+          fetchingRef.current = false;
+        });
     },
     [cursor]
   );
 
   // chỉ fetch trang đầu khi mount; fetchMore đổi theo cursor nên không đưa vào deps
-  useEffect(() => { fetchMore(true); }, []); // eslint-disable-line react-hooks/exhaustive-deps, react-hooks/set-state-in-effect
+  useEffect(() => { fetchMore(true); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // infinite scroll: sentinel cuối trang lọt vào viewport thì tải tiếp
   const sentinelRef = useRef(null);
