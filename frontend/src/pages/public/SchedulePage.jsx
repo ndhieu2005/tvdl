@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { Star } from 'lucide-react';
+import { Star, Clock, MapPin } from 'lucide-react';
 import { api } from '../../lib/api';
 
 function formatTimeRange(ev) {
@@ -310,53 +310,82 @@ export default function SchedulePage() {
                 {!loading && displaySchedules.length === 0 && displayEvents.length === 0 && (
                   <p className="text-[#9CA3AF] text-center py-8 italic">Không có lịch</p>
                 )}
-                {!loading && displayEvents.map((ev) => (
-                  <div
-                    key={`ev-${ev.id}`}
-                    className={`pl-4 transition-all ${ev.is_featured ? 'bg-yellow/10 py-2 rounded-r' : ''}`}
-                    style={{
-                      borderLeftWidth: '6px',
-                      borderLeftColor: ev.is_featured ? '#F5C000' : (ev.color || '#1B3F8B'),
-                    }}
-                  >
-                    <h4 className="font-bold text-blue mb-1 flex items-center gap-1.5 flex-wrap">
-                      {ev.name}
-                      {ev.is_featured && (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide bg-yellow text-[#2B2B2B] px-1.5 py-0.5 rounded">
-                          <Star size={10} className="fill-[#2B2B2B]" /> Nổi bật
-                        </span>
+                {!loading && displayEvents.map((ev) => {
+                  const locStr = formatLocation(ev.location, ev.custom_location_name);
+                  return (
+                    <div
+                      key={`ev-${ev.id}`}
+                      className={`pl-4 transition-all ${ev.is_featured ? 'bg-yellow/10 py-2 rounded-r' : ''}`}
+                      style={{
+                        borderLeftWidth: '6px',
+                        borderLeftColor: ev.is_featured ? '#F5C000' : (ev.color || '#1B3F8B'),
+                      }}
+                    >
+                      <h4 className="font-bold text-blue mb-1.5 flex items-center gap-1.5 flex-wrap">
+                        {ev.name}
+                        {ev.is_featured && (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide bg-yellow text-[#2B2B2B] px-1.5 py-0.5 rounded">
+                            <Star size={10} className="fill-[#2B2B2B]" /> Nổi bật
+                          </span>
+                        )}
+                      </h4>
+                      <div className="space-y-1 text-xs sm:text-sm text-[#3F3F3F] font-light">
+                        <div className="flex items-center gap-1.5">
+                          <Clock size={14} className="text-[#9CA3AF] shrink-0" />
+                          <span>{formatTimeRange(ev)}</span>
+                        </div>
+                        {locStr && (
+                          <div className="flex items-start gap-1.5">
+                            <MapPin size={14} className="text-[#9CA3AF] shrink-0 mt-0.5" />
+                            <span>{locStr}</span>
+                          </div>
+                        )}
+                      </div>
+                      {ev.description && (
+                        <p className="text-xs text-[#9CA3AF] mt-1.5 line-clamp-2">{ev.description}</p>
                       )}
-                    </h4>
-                    <div className="text-xs sm:text-sm text-[#3F3F3F] font-light">
-                      {formatTimeRange(ev)} · {formatLocation(ev.location, ev.custom_location_name)}
                     </div>
-                    {ev.description && (
-                      <p className="text-xs text-[#9CA3AF] mt-0.5 line-clamp-2">{ev.description}</p>
-                    )}
-                  </div>
-                ))}
-                {!loading && displaySchedules.map((s) => (
-                  <div
-                    key={s.id}
-                    className="pl-4 transition-all"
-                    style={{
-                      borderLeftWidth: '6px',
-                      borderLeftColor: s.location?.color_code || '#1B3F8B',
-                    }}
-                  >
-                    <h4 className="font-bold text-yellow mb-1">
-                      {s.time_frame} — {SHIFT_LABELS[s.shift] || s.shift}
-                    </h4>
-                    <div className="text-xs sm:text-sm text-[#3F3F3F] font-light">
-                      {formatLocation(s.location, s.custom_location_name)}
+                  );
+                })}
+                {!loading && displaySchedules.map((s) => {
+                  const locStr = formatLocation(s.location, s.custom_location_name);
+                  return (
+                    <div
+                      key={s.id}
+                      className="pl-4 transition-all"
+                      style={{
+                        borderLeftWidth: '6px',
+                        borderLeftColor: s.location?.color_code || '#1B3F8B',
+                      }}
+                    >
+                      <h4 className="font-bold text-blue mb-1.5 flex items-center gap-1.5 flex-wrap">
+                        Mở cửa — {SHIFT_LABELS[s.shift] || s.shift}
+                        {s.is_sudden_closed && (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide bg-red-100 text-red-600 px-1.5 py-0.5 rounded">
+                            Đóng đột xuất
+                          </span>
+                        )}
+                      </h4>
+                      <div className="space-y-1 text-xs sm:text-sm text-[#3F3F3F] font-light">
+                        <div className="flex items-center gap-1.5">
+                          <Clock size={14} className="text-[#9CA3AF] shrink-0" />
+                          <span>{s.time_frame}</span>
+                        </div>
+                        {locStr && (
+                          <div className="flex items-start gap-1.5">
+                            <MapPin size={14} className="text-[#9CA3AF] shrink-0 mt-0.5" />
+                            <span>{locStr}</span>
+                          </div>
+                        )}
+                      </div>
+                      {s.is_sudden_closed && (
+                        <p className="text-xs text-red-500 font-medium mt-1.5">
+                          ⚠ {s.closed_reason || 'Đột xuất đóng cửa'}
+                        </p>
+                      )}
                     </div>
-                    {s.is_sudden_closed && (
-                      <p className="text-xs text-red-500 font-medium mt-0.5">
-                        ⚠ {s.closed_reason || 'Đột xuất đóng cửa'}
-                      </p>
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>
