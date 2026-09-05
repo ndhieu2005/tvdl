@@ -20,10 +20,10 @@ export default function AboutPage() {
 
   return (
     <div className="min-h-screen">
-      <div className="flex justify-between items-center p-4 sm:p-16">
-        <p className="text-blue text-xl sm:text-5xl font-semibold">
+      <div className="flex justify-between items-center px-10 py-4 sm:px-28 sm:py-16">
+        <h1 className="text-blue text-xl sm:text-5xl font-semibold">
           Về Thư viện
-        </p>
+        </h1>
         <Link
           to="/contact"
           className="bg-blue hover:bg-yellow text-white duration-200 w-52 sm:w-80 h-8 sm:h-12 pl-3 sm:pl-10 flex items-center gap-2 sm:gap-8"
@@ -37,7 +37,7 @@ export default function AboutPage() {
 
       <img src={bgAboutLibrary} alt="bgAboutLibrary" className="w-full" />
 
-      <div className="p-6 sm:p-16">
+      <div className="px-10 py-6 sm:px-28 sm:py-16">
         <p className="text-blue text-3xl sm:text-5xl font-bold mb-5 sm:mb-14">
           WE DO LIBRARY & BEYOND
         </p>

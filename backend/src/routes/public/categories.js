@@ -7,8 +7,15 @@ router.get('/', async (req, res, next) => {
   try {
     const categories = await prisma.categories.findMany({
       where: { deleted_at: null },
-      select: { id: true, name: true },
-      orderBy: { name: 'asc' },
+      select: {
+        id: true,
+        name: true,
+        age_group: { select: { id: true, name: true } },
+      },
+      orderBy: [
+        { age_group_id: 'asc' },
+        { name: 'asc' },
+      ],
     });
     return success(res, categories);
   } catch (err) {

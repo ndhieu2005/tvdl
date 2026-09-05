@@ -291,6 +291,56 @@ else
   R=$(curl -s -o /tmp/r -w "%{http_code}" "$BASE/admin/suggestions?page=1&limit=5" \
     -H "Authorization: Bearer $TOKEN")
   check "GET /admin/suggestions?page=1&limit=5" $R
+
+  echo ""
+  echo "=== ADMIN PROFILE & USERS ==="
+
+  R=$(curl -s -o /tmp/r -w "%{http_code}" "$BASE/admin/auth/me" \
+    -H "Authorization: Bearer $TOKEN")
+  check "GET /admin/auth/me" $R
+
+  R=$(curl -s -o /tmp/r -w "%{http_code}" -X PUT "$BASE/admin/auth/profile" \
+    -H "Authorization: Bearer $TOKEN" \
+    -H "Content-Type: application/json" \
+    -d '{"name":"Admin Tổng"}')
+  check "PUT /admin/auth/profile (update name)" $R
+
+  R=$(curl -s -o /tmp/r -w "%{http_code}" "$BASE/admin/users" \
+    -H "Authorization: Bearer $TOKEN")
+  check "GET /admin/users (super_admin)" $R
+
+  TEST_USER="test_sub_admin_$RANDOM"
+  R=$(curl -s -o /tmp/r -w "%{http_code}" -X POST "$BASE/admin/users" \
+    -H "Authorization: Bearer $TOKEN" \
+    -H "Content-Type: application/json" \
+    -d "{\"username\":\"$TEST_USER\",\"password\":\"test123456\",\"name\":\"Người quản trị phụ\",\"role\":\"admin\"}")
+  check "POST /admin/users" $R 201
+  SUB_USER_ID=$(cat /tmp/r | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['data']['id'])" 2>/dev/null)
+
+  if [ -n "$SUB_USER_ID" ]; then
+    R=$(curl -s -o /tmp/r -w "%{http_code}" -X PUT "$BASE/admin/users/$SUB_USER_ID" \
+      -H "Authorization: Bearer $TOKEN" \
+      -H "Content-Type: application/json" \
+      -d '{"name":"Người quản trị phụ đã sửa"}')
+    check "PUT /admin/users/$SUB_USER_ID" $R
+
+    # Test login with new sub-admin
+    R=$(curl -s -o /tmp/r -w "%{http_code}" -X POST "$BASE/admin/auth/login" \
+      -H "Content-Type: application/json" \
+      -d "{\"username\":\"$TEST_USER\",\"password\":\"test123456\"}")
+    check "POST /admin/auth/login (sub-admin)" $R 200
+    SUB_TOKEN=$(cat /tmp/r | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['data']['token'])" 2>/dev/null)
+
+    if [ -n "$SUB_TOKEN" ]; then
+      R=$(curl -s -o /tmp/r -w "%{http_code}" "$BASE/admin/users" \
+        -H "Authorization: Bearer $SUB_TOKEN")
+      check "GET /admin/users (forbidden for regular admin)" $R 403
+    fi
+
+    R=$(curl -s -o /tmp/r -w "%{http_code}" -X DELETE "$BASE/admin/users/$SUB_USER_ID" \
+      -H "Authorization: Bearer $TOKEN")
+    check "DELETE /admin/users/$SUB_USER_ID" $R
+  fi
 fi
 
 echo ""

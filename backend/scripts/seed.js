@@ -54,8 +54,12 @@ async function main() {
   const password_hash = await bcrypt.hash("admin123", 10);
   await prisma.admins.upsert({
     where: { username: "admin" },
-    update: {},
-    create: { username: "admin", password_hash },
+    update: { role: "super_admin", name: "Admin Tổng" },
+    create: { username: "admin", name: "Admin Tổng", role: "super_admin", password_hash },
+  });
+
+  const adminUser = await prisma.admins.findUnique({
+    where: { username: "admin" },
   });
 
   // Bài viết mẫu
@@ -64,7 +68,7 @@ async function main() {
   });
   await prisma.posts.upsert({
     where: { slug: "chao-mung-den-voi-thu-vien-duong-lieu" },
-    update: {},
+    update: { author_id: adminUser?.id },
     create: {
       title: "Chào mừng đến với Thư viện Dương Liễu",
       slug: "chao-mung-den-voi-thu-vien-duong-lieu",
@@ -72,6 +76,7 @@ async function main() {
         "Giới thiệu về thư viện cộng đồng Dương Liễu và các hoạt động dành cho bạn đọc mọi lứa tuổi.",
       content:
         "<h2>Về thư viện</h2><p>Thư viện Dương Liễu là thư viện cộng đồng phục vụ bạn đọc mọi lứa tuổi với hai cơ sở và dự án thư viện lưu động.</p><h2>Hoạt động</h2><ul><li>Đọc sách tại chỗ và tra cứu tài liệu</li><li>Sự kiện đọc sách cuối tuần</li><li>Dự án lưu động đưa sách tới các thôn xóm</li></ul>",
+      author_id: adminUser?.id,
     },
   });
 

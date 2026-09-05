@@ -11,6 +11,14 @@ function CheckIcon({ className }) {
   );
 }
 
+function ChevronDownIcon({ className }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <polyline points="6 9 12 15 18 9" />
+    </svg>
+  );
+}
+
 export default function SuggestionPage() {
   const [alreadySubmitted, setAlreadySubmitted] = useState(
     () => !!localStorage.getItem(STORAGE_KEY)
@@ -82,12 +90,12 @@ export default function SuggestionPage() {
 
   if (submitted || alreadySubmitted) {
     return (
-      <div className="min-h-[calc(100vh-64px)] py-5 sm:py-12">
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-          <h1 className="text-3xl sm:text-5xl font-semibold text-blue mb-6 sm:mb-20 pl-5 sm:pl-10">
+      <div className="min-h-[calc(100vh-64px)] px-6 py-8 sm:px-16 sm:py-16">
+        <div className="max-w-3xl mx-auto">
+          <h1 className="text-3xl sm:text-5xl font-bold text-blue mb-8 sm:mb-16">
             Đề xuất sách
           </h1>
-          <div className="max-w-lg mx-auto text-center py-16 px-6">
+          <div className="max-w-md mx-auto text-center py-12 px-6">
             <div className="w-16 h-16 border-2 border-blue rounded-full flex items-center justify-center mx-auto mb-6">
               <CheckIcon className="h-7 w-7 text-blue" />
             </div>
@@ -112,128 +120,149 @@ export default function SuggestionPage() {
   }
 
   return (
-    <div className="min-h-[calc(100vh-64px)] py-5 sm:py-12">
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-        <h1 className="text-3xl sm:text-5xl font-semibold text-blue mb-6 sm:mb-20 pl-5 sm:pl-10">
+    <div className="min-h-[calc(100vh-64px)] px-6 py-8 sm:px-16 sm:py-16">
+      <div className="max-w-3xl mx-auto">
+        <h1 className="text-3xl sm:text-5xl font-bold text-blue mb-4 sm:mb-6">
           Đề xuất sách
         </h1>
 
-        <div className="max-w-lg mx-auto">
-          <p className="text-sm text-[#9CA3AF] mb-8 leading-relaxed">
-            Bạn muốn thư viện bổ sung một cuốn sách? Hãy điền thông tin bên dưới —
-            chúng tôi sẽ xem xét và cố gắng đáp ứng nhu cầu của bạn đọc.
-          </p>
+        <p className="text-sm text-[#9CA3AF] mb-10 sm:mb-14 leading-relaxed">
+          Bạn muốn thư viện bổ sung một cuốn sách? Hãy điền thông tin bên dưới —
+          chúng tôi sẽ xem xét và cố gắng đáp ứng nhu cầu của bạn đọc.
+        </p>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Reader code */}
+        <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-7">
+          {/* Reader code */}
+          <div className="grid grid-cols-1 sm:grid-cols-[200px_1fr] md:grid-cols-[240px_1fr] items-center gap-2 sm:gap-6">
+            <label className="text-sm sm:text-base text-[#333333] font-medium">
+              Mã bạn đọc: <span className="text-yellow font-bold">*</span>
+            </label>
             <div>
-              <label className="block text-xs font-bold uppercase tracking-widest text-blue mb-2">
-                Mã bạn đọc <span className="text-yellow">*</span>
-              </label>
               <input
                 type="text"
                 name="reader_code"
                 value={form.reader_code}
                 onChange={handleChange}
                 placeholder="VD: BĐ00123"
-                className="w-full border border-[#424241] bg-[#F9F3E1] px-4 py-3 text-sm text-[#2B2B2B] placeholder:text-[#9CA3AF] focus:outline-none focus:border-blue transition-colors"
+                className="w-full border-b border-gray-400 bg-transparent py-1.5 text-sm sm:text-base text-[#2B2B2B] placeholder:text-gray-400 focus:outline-none focus:border-blue transition-colors"
               />
             </div>
+          </div>
 
-            {/* Email */}
+          {/* Email */}
+          <div className="grid grid-cols-1 sm:grid-cols-[200px_1fr] md:grid-cols-[240px_1fr] items-center gap-2 sm:gap-6">
+            <label className="text-sm sm:text-base text-[#333333] font-medium">
+              Địa chỉ email:
+            </label>
             <div>
-              <label className="block text-xs font-bold uppercase tracking-widest text-blue mb-2">
-                Email <span className="text-[#9CA3AF] font-normal normal-case tracking-normal">(không bắt buộc)</span>
-              </label>
               <input
                 type="email"
                 name="email"
                 value={form.email}
                 onChange={handleChange}
                 placeholder="email@example.com"
-                className="w-full border border-[#424241] bg-[#F9F3E1] px-4 py-3 text-sm text-[#2B2B2B] placeholder:text-[#9CA3AF] focus:outline-none focus:border-blue transition-colors"
+                className="w-full border-b border-gray-400 bg-transparent py-1.5 text-sm sm:text-base text-[#2B2B2B] placeholder:text-gray-400 focus:outline-none focus:border-blue transition-colors"
               />
             </div>
+          </div>
 
-            {/* Book name */}
+          {/* Book name */}
+          <div className="grid grid-cols-1 sm:grid-cols-[200px_1fr] md:grid-cols-[240px_1fr] items-center gap-2 sm:gap-6">
+            <label className="text-sm sm:text-base text-[#333333] font-medium">
+              Tên sách đề xuất: <span className="text-yellow font-bold">*</span>
+            </label>
             <div>
-              <label className="block text-xs font-bold uppercase tracking-widest text-blue mb-2">
-                Tên sách đề xuất <span className="text-yellow">*</span>
-              </label>
               <input
                 type="text"
                 name="book_name"
                 value={form.book_name}
                 onChange={handleChange}
                 placeholder="Tên sách hoặc tác giả"
-                className="w-full border border-[#424241] bg-[#F9F3E1] px-4 py-3 text-sm text-[#2B2B2B] placeholder:text-[#9CA3AF] focus:outline-none focus:border-blue transition-colors"
+                className="w-full border-b border-gray-400 bg-transparent py-1.5 text-sm sm:text-base text-[#2B2B2B] placeholder:text-gray-400 focus:outline-none focus:border-blue transition-colors"
               />
             </div>
+          </div>
 
-            {/* Age group + Category */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-widest text-blue mb-2">
-                  Độ tuổi
-                </label>
-                <select
-                  name="age_group_id"
-                  value={form.age_group_id}
-                  onChange={handleChange}
-                  className="w-full border border-[#424241] bg-[#F9F3E1] px-4 py-3 text-sm text-[#2B2B2B] focus:outline-none focus:border-blue transition-colors appearance-none cursor-pointer"
-                >
-                  <option value="">— Tất cả —</option>
-                  {ageGroups.map((g) => (
-                    <option key={g.id} value={g.id}>{g.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-widest text-blue mb-2">
-                  Thể loại
-                </label>
-                <select
-                  name="category_id"
-                  value={form.category_id}
-                  onChange={handleChange}
-                  className="w-full border border-[#424241] bg-[#F9F3E1] px-4 py-3 text-sm text-[#2B2B2B] focus:outline-none focus:border-blue transition-colors appearance-none cursor-pointer"
-                >
-                  <option value="">— Tất cả —</option>
-                  {categories.map((c) => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
+          {/* Age group */}
+          <div className="grid grid-cols-1 sm:grid-cols-[200px_1fr] md:grid-cols-[240px_1fr] items-center gap-2 sm:gap-6">
+            <label className="text-sm sm:text-base text-[#333333] font-medium">
+              Độ tuổi:
+            </label>
+            <div className="relative">
+              <select
+                name="age_group_id"
+                value={form.age_group_id}
+                onChange={handleChange}
+                className="w-full border border-gray-400 bg-transparent py-2.5 px-4 pr-10 text-sm sm:text-base text-gray-700 focus:outline-none focus:border-blue transition-colors appearance-none cursor-pointer"
+              >
+                <option value="">Chọn độ tuổi</option>
+                {ageGroups.map((g) => (
+                  <option key={g.id} value={g.id}>{g.name}</option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+                <ChevronDownIcon className="w-4 h-4" />
               </div>
             </div>
+          </div>
 
-            {/* Description */}
+          {/* Category */}
+          <div className="grid grid-cols-1 sm:grid-cols-[200px_1fr] md:grid-cols-[240px_1fr] items-center gap-2 sm:gap-6">
+            <label className="text-sm sm:text-base text-[#333333] font-medium">
+              Thể loại:
+            </label>
+            <div className="relative">
+              <select
+                name="category_id"
+                value={form.category_id}
+                onChange={handleChange}
+                className="w-full border border-gray-400 bg-transparent py-2.5 px-4 pr-10 text-sm sm:text-base text-gray-700 focus:outline-none focus:border-blue transition-colors appearance-none cursor-pointer"
+              >
+                <option value="">Chọn thể loại</option>
+                {categories.map((c) => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+                <ChevronDownIcon className="w-4 h-4" />
+              </div>
+            </div>
+          </div>
+
+          {/* Description */}
+          <div className="grid grid-cols-1 sm:grid-cols-[200px_1fr] md:grid-cols-[240px_1fr] items-start gap-2 sm:gap-6">
+            <label className="text-sm sm:text-base text-[#333333] font-medium pt-1.5 sm:pt-2">
+              Lý do đề xuất và<br className="hidden sm:inline" /> lời nhắn (nếu có):
+            </label>
             <div>
-              <label className="block text-xs font-bold uppercase tracking-widest text-blue mb-2">
-                Ghi chú thêm <span className="text-[#9CA3AF] font-normal normal-case tracking-normal">(không bắt buộc)</span>
-              </label>
               <textarea
                 name="description"
                 value={form.description}
                 onChange={handleChange}
                 rows={4}
-                placeholder="Lý do đề xuất, thể loại mong muốn..."
-                className="w-full border border-[#424241] bg-[#F9F3E1] px-4 py-3 text-sm text-[#2B2B2B] placeholder:text-[#9CA3AF] focus:outline-none focus:border-blue transition-colors resize-none"
+                placeholder="Lý do đề xuất, thông tin xuất bản hoặc ghi chú thêm..."
+                className="w-full border border-gray-400 bg-transparent p-3 text-sm sm:text-base text-[#2B2B2B] placeholder:text-gray-400 focus:outline-none focus:border-blue transition-colors resize-none"
               />
             </div>
+          </div>
 
-            {error && (
-              <p className="text-sm text-red-500">{error}</p>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-blue text-white text-sm font-bold uppercase tracking-widest py-4 hover:bg-blue/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? 'Đang gửi...' : 'Gửi đề xuất →'}
-            </button>
-          </form>
-        </div>
+          {/* Error & Submit Button */}
+          <div className="grid grid-cols-1 sm:grid-cols-[200px_1fr] md:grid-cols-[240px_1fr] gap-2 sm:gap-6 pt-2">
+            <div className="hidden sm:block" />
+            <div className="space-y-4">
+              {error && (
+                <p className="text-sm text-red-500">{error}</p>
+              )}
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-yellow hover:bg-yellow-dark text-white font-semibold py-3 sm:py-3.5 px-8 rounded-full uppercase tracking-wider text-sm sm:text-base shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? 'Đang gửi...' : 'ĐĂNG KÝ'}
+              </button>
+            </div>
+          </div>
+        </form>
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-const INPUT_CLS = 'w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-blue outline-none';
+const INPUT_CLS = 'w-full bg-white text-[#2D2D2D] border border-gray-200 rounded-lg px-3 py-2 text-sm focus:border-blue outline-none transition-colors';
 
 export function FormField({ label, required = false, error, children }) {
   return (
@@ -17,7 +17,7 @@ export function TextInput(props) {
 }
 
 export function Select({ children, ...props }) {
-  return <select {...props} className={`${INPUT_CLS} ${props.className || ''}`}>{children}</select>;
+  return <select {...props} className={`${INPUT_CLS} cursor-pointer ${props.className || ''}`}>{children}</select>;
 }
 
 export function TextArea(props) {

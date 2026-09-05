@@ -5,13 +5,22 @@ const { success } = require('../../utils/response');
 // GET /api/v1/new-books
 router.get('/', async (req, res, next) => {
   try {
+    const q = req.query.q ? req.query.q.trim() : undefined;
     const category_id = req.query.category_id ? parseInt(req.query.category_id) : undefined;
     const age_group_id = req.query.age_group_id ? parseInt(req.query.age_group_id) : undefined;
+    const location_id = req.query.location_id ? parseInt(req.query.location_id) : undefined;
 
     const where = {
       deleted_at: null,
       ...(category_id && { category_id }),
       ...(age_group_id && { category: { age_group_id } }),
+      ...(location_id && { location_id }),
+      ...(q && {
+        OR: [
+          { title: { contains: q } },
+          { author: { contains: q } },
+        ],
+      }),
     };
 
     const [books, quotes] = await Promise.all([

@@ -12,8 +12,11 @@ model Admins {
   id            Int       @id @default(autoincrement())
   username      String    @unique @db.VarChar(50)
   password_hash String    @db.VarChar(255)
+  name          String?   @db.VarChar(100)
+  role          String    @default("admin") @db.VarChar(20)
   created_at    DateTime  @default(now())
   deleted_at    DateTime?
+  posts         Posts[]
 }
 
 model Age_Groups {
@@ -65,7 +68,7 @@ model Books {
   book_code   String     @unique @db.VarChar(50)
   title       String     @db.VarChar(255)
   author      String     @db.VarChar(40)
-  cover_url   String?    @db.VarChar(255)
+  cover_url   String?    @db.Text
   location_id Int
   category_id Int
   created_at  DateTime   @default(now())
@@ -80,14 +83,14 @@ model New_Books {
   title             String     @db.VarChar(255)
   author            String?    @db.VarChar(255)
   book_code         String?    @db.VarChar(50)
-  cover_image       String?    @db.VarChar(255)
+  cover_image       String?    @db.Text
   short_description String?    @db.Text
   publisher         String?    @db.VarChar(255)
   publish_year      Int?
   page_count        Int?
   month_year        String?    @db.VarChar(7)
   is_featured       Boolean    @default(false)
-  skoolib_url       String?    @db.VarChar(500)
+  skoolib_url       String?    @db.Text
   location_id       Int
   category_id       Int
   created_at        DateTime   @default(now())
@@ -159,7 +162,10 @@ model Posts {
   slug        String    @unique @db.VarChar(255)
   summary     String?   @db.Text
   content     String    @db.LongText
-  cover_image String?   @db.VarChar(255)
+  cover_image String?   @db.Text
+  is_featured Boolean   @default(false)
+  author_id   Int?
+  author      Admins?   @relation(fields: [author_id], references: [id])
   created_at  DateTime  @default(now())
   updated_at  DateTime  @updatedAt
   deleted_at  DateTime?

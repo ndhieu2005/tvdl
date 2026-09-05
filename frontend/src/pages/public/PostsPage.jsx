@@ -1,67 +1,38 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { Star, User } from 'lucide-react';
 import { api } from '../../lib/api';
 
-function ShortArrowRightIcon({ className }) {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12.69 8.88" fill="currentColor" className={className}>
-      <path d="m12.69,4.48c0-.1-.02-.21-.12-.3-.17-.17-.33-.34-.5-.5-1.17-1.19-2.33-2.37-3.5-3.56-.37-.38-.95.2-.58.58.17.17.33.34.5.5.94.95,1.87,1.9,2.81,2.85H.4c-.53,0-.53.82,0,.82h10.88c-1.11,1.1-2.23,2.2-3.35,3.3-.38.37.2.95.58.58.17-.17.34-.34.51-.51,1.18-1.17,2.36-2.33,3.54-3.49.07-.07.11-.16.11-.25,0-.01,0-.02,0-.03Z"/>
-    </svg>
-  );
-}
-
-function PostCard({ post }) {
-  return (
-    <Link
-      to={`/news/${post.slug}`}
-      className="group flex flex-col border border-[#424241] overflow-hidden hover:bg-[#F9F3E1] transition-colors"
-    >
-      <div className="aspect-[16/9] bg-[#F9F3E1] overflow-hidden flex items-center justify-center border-b border-[#424241]">
-        {post.cover_image ? (
-          <img src={post.cover_image} alt={post.title} className="w-full h-full object-cover" />
-        ) : (
-          <span className="text-blue/20 text-3xl font-bold">TV</span>
-        )}
-      </div>
-      <div className="p-4 flex-1 flex flex-col">
-        <p className="text-xs text-[#9CA3AF] mb-1">
-          {new Date(post.created_at).toLocaleDateString('vi-VN')}
-        </p>
-        <h3 className="font-bold text-blue leading-snug line-clamp-2 group-hover:underline">
-          {post.title}
-        </h3>
-        {post.summary && (
-          <p className="text-xs text-[#3F3F3F] mt-2 line-clamp-3 leading-relaxed font-light">
-            {post.summary}
-          </p>
-        )}
-        <span className="flex items-center gap-2 text-xs font-semibold text-blue mt-auto pt-3 tracking-wide uppercase">
-          Đọc tiếp <ShortArrowRightIcon className="h-1.5 w-auto" />
-        </span>
-      </div>
-    </Link>
-  );
-}
-
 export default function PostsPage() {
+  const [featured, setFeatured] = useState(null);
   const [posts, setPosts] = useState([]);
   const [cursor, setCursor] = useState(null);
   const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(false);
   const fetchingRef = useRef(false);
+  const excludeIdRef = useRef(null);
 
   const fetchMore = useCallback(
     (reset = false) => {
       if (fetchingRef.current) return;
       fetchingRef.current = true;
       setLoading(true);
-      const params = new URLSearchParams({ limit: 12 });
-      if (!reset && cursor) params.set('cursor', cursor);
+      const params = new URLSearchParams({ limit: 10 });
+      if (!reset && cursor) {
+        params.set('cursor', cursor);
+        if (excludeIdRef.current) params.set('exclude_id', excludeIdRef.current);
+      }
 
       api.get(`/posts?${params}`)
         .then((r) => {
           const { data, meta } = r.data;
-          setPosts((prev) => (reset ? data : [...prev, ...data]));
+          if (reset) {
+            setFeatured(meta?.featured || null);
+            excludeIdRef.current = meta?.excludeId || (meta?.featured?.id ?? null);
+            setPosts(data || []);
+          } else {
+            setPosts((prev) => [...prev, ...data]);
+          }
           setCursor(meta?.nextCursor || null);
           setHasMore(!!meta?.nextCursor);
         })
@@ -90,38 +61,134 @@ export default function PostsPage() {
     return () => obs.disconnect();
   }, [fetchMore, hasMore, loading]);
 
+  const hasAnyPost = !!featured || posts.length > 0;
+
   return (
-    <div className="min-h-[calc(100vh-64px)] py-5 sm:py-12">
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-        <h1 className="text-3xl sm:text-5xl font-semibold text-blue mb-6 sm:mb-12">
-          Bài viết
-        </h1>
+    <div className="min-h-[calc(100vh-64px)] px-10 py-5 sm:px-28 sm:py-12">
+      {/* Tiêu đề chính */}
+      <h1 className="text-3xl sm:text-5xl font-semibold text-blue mb-6 sm:mb-12">
+        Tin tức, tin mới đây!
+      </h1>
 
-        {posts.length === 0 && !loading && (
-          <p className="text-center text-[#9CA3AF] py-16 italic">Chưa có bài viết nào</p>
-        )}
+      {/* Dòng phân cách Tin mới nhất */}
+      <div className="flex items-center gap-4 mb-8 sm:mb-10">
+        <h2 className="text-2xl sm:text-3xl font-bold text-blue shrink-0">
+          Tin mới nhất
+        </h2>
+        <div className="h-[1px] bg-[#9CA3AF]/60 flex-1" />
+      </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {posts.map((p) => <PostCard key={p.id} post={p} />)}
-        </div>
+      {!hasAnyPost && !loading && (
+        <p className="text-center text-[#9CA3AF] py-16 italic">Chưa có bài viết nào</p>
+      )}
 
-        {loading && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-5 animate-pulse">
-            {[0, 1, 2].map((i) => (
-              <div key={i} className="border border-[#F2EAD3]">
-                <div className="aspect-[16/10] bg-[#F2EAD3]" />
-                <div className="p-4">
-                  <div className="h-3 w-16 bg-[#F2EAD3] rounded mb-3" />
-                  <div className="h-4 w-4/5 bg-[#F2EAD3] rounded mb-2" />
-                  <div className="h-3 w-full bg-[#F2EAD3] rounded mb-1.5" />
-                  <div className="h-3 w-2/3 bg-[#F2EAD3] rounded" />
-                </div>
+      {/* Layout 2 cột: Cột trái (Nổi bật - Cố định khi cuộn), Cột phải (Danh sách các bài còn lại) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
+        {/* Cột trái: Container Bài viết nổi bật (Sticky khi cuộn) */}
+        {featured && (
+          <div className="lg:col-span-5 lg:sticky lg:top-24 self-start">
+            <Link
+              to={`/news/${featured.slug}`}
+              className="group block"
+            >
+              <div className="w-full aspect-[16/10] bg-[#F5C000] overflow-hidden flex items-center justify-center shadow-xs">
+                {featured.cover_image ? (
+                  <img
+                    src={featured.cover_image}
+                    alt={featured.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-[#F5C000] flex items-center justify-center">
+                    <span className="text-white/70 font-bold text-3xl tracking-wider">TVDL</span>
+                  </div>
+                )}
               </div>
-            ))}
+
+              <div className="mt-4 space-y-1.5">
+                <div className="flex items-start gap-2">
+                  <span className="text-blue/80 text-sm font-light mt-0.5 select-none">☆</span>
+                  <h3 className="font-bold text-blue text-base sm:text-lg leading-snug group-hover:underline">
+                    {featured.title}
+                  </h3>
+                </div>
+                {(featured.author?.name || featured.author?.username) && (
+                  <div className="flex items-center gap-2 text-[#E5A823] font-bold text-xs sm:text-sm">
+                    <User size={14} className="text-blue/80 shrink-0" strokeWidth={1.75} />
+                    <span>{featured.author?.name || featured.author?.username}</span>
+                  </div>
+                )}
+              </div>
+            </Link>
           </div>
         )}
 
-        {hasMore && <div ref={sentinelRef} className="h-1" />}
+        {/* Cột phải: Container Danh sách các bài viết còn lại (Nền xám nhạt có padding) */}
+        <div className={`${featured ? 'lg:col-span-7' : 'lg:col-span-12'} bg-[#F4F6FA] p-6 sm:p-8 md:p-10 rounded-xs shadow-2xs`}>
+          <div className="flex flex-col divide-y divide-[#D1D5DB]">
+            {posts.map((post) => (
+              <Link
+                key={post.id}
+                to={`/news/${post.slug}`}
+                className="group flex flex-col-reverse sm:flex-row gap-6 justify-between items-start py-6 first:pt-0 last:pb-0"
+              >
+                {/* Phần thông tin text bên trái */}
+                <div className="flex-1 min-w-0 pr-0 sm:pr-2">
+                  <div className="flex items-start gap-2">
+                    <span className="text-blue/80 text-sm font-light mt-0.5 select-none">☆</span>
+                    <h3 className="font-bold text-blue text-sm sm:text-base leading-snug group-hover:underline line-clamp-2">
+                      {post.title}
+                    </h3>
+                  </div>
+                  {(post.author?.name || post.author?.username) && (
+                    <div className="flex items-center gap-2 mt-1 text-[#E5A823] font-bold text-xs sm:text-sm">
+                      <User size={13} className="text-blue/80 shrink-0" strokeWidth={1.75} />
+                      <span>{post.author?.name || post.author?.username}</span>
+                    </div>
+                  )}
+                  {post.summary && (
+                    <p className="text-xs sm:text-[13px] text-[#4B5563] mt-3 line-clamp-3 sm:line-clamp-4 leading-relaxed font-normal">
+                      &ldquo;{post.summary}&rdquo;
+                    </p>
+                  )}
+                </div>
+
+                {/* Phần ảnh thumbnail bên phải */}
+                <div className="w-full sm:w-48 md:w-56 aspect-[16/10] shrink-0 bg-[#3F3F3F] overflow-hidden flex items-center justify-center shadow-2xs">
+                  {post.cover_image ? (
+                    <img
+                      src={post.cover_image}
+                      alt={post.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-[#3F3F3F] flex items-center justify-center">
+                      <span className="text-white/40 font-semibold text-xs tracking-wider">TVDL</span>
+                    </div>
+                  )}
+                </div>
+              </Link>
+            ))}
+
+            {loading && (
+              <div className="space-y-6 py-6 animate-pulse">
+                {[0, 1].map((i) => (
+                  <div key={i} className="flex flex-col-reverse sm:flex-row gap-6 justify-between items-start">
+                    <div className="flex-1 min-w-0 space-y-2.5">
+                      <div className="h-4 bg-gray-300/70 rounded w-4/5" />
+                      <div className="h-3 bg-gray-300/70 rounded w-1/4" />
+                      <div className="h-3 bg-gray-300/70 rounded w-full" />
+                      <div className="h-3 bg-gray-300/70 rounded w-3/4" />
+                    </div>
+                    <div className="w-full sm:w-48 md:w-56 aspect-[16/10] bg-gray-300/70 rounded" />
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {hasMore && <div ref={sentinelRef} className="h-1" />}
+          </div>
+        </div>
       </div>
     </div>
   );

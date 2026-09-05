@@ -44,6 +44,15 @@ router.get('/', async (req, res, next) => {
           slug: true,
           summary: true,
           cover_image: true,
+          is_featured: true,
+          author_id: true,
+          author: {
+            select: {
+              id: true,
+              username: true,
+              name: true,
+            },
+          },
           created_at: true,
           updated_at: true,
         },
@@ -65,7 +74,18 @@ router.get('/', async (req, res, next) => {
 router.get('/:id', async (req, res, next) => {
   try {
     const id = parseInt(req.params.id);
-    const post = await prisma.posts.findFirst({ where: { id, deleted_at: null } });
+    const post = await prisma.posts.findFirst({
+      where: { id, deleted_at: null },
+      include: {
+        author: {
+          select: {
+            id: true,
+            username: true,
+            name: true,
+          },
+        },
+      },
+    });
     if (!post)
       return error(res, 'Không tìm thấy bài viết', 'NOT_FOUND', 404);
     return success(res, post);
@@ -77,10 +97,18 @@ router.get('/:id', async (req, res, next) => {
 // POST /api/v1/admin/posts
 router.post('/', async (req, res, next) => {
   try {
-    const { title, summary, content, cover_image } = req.body;
+    const { title, summary, content, cover_image, is_featured } = req.body;
 
     if (!title || !content)
       return error(res, 'Thiếu title hoặc content', 'VALIDATION_ERROR', 400);
+
+    const featured = is_featured === true || is_featured === 'true';
+    if (featured) {
+      await prisma.posts.updateMany({
+        where: { deleted_at: null },
+        data: { is_featured: false },
+      });
+    }
 
     const post = await prisma.posts.create({
       data: {
@@ -89,6 +117,8 @@ router.post('/', async (req, res, next) => {
         summary: summary || null,
         content: sanitizeHtml(content, SANITIZE_OPTIONS),
         cover_image: cover_image || null,
+        is_featured: featured,
+        author_id: req.admin?.id || null,
       },
     });
 
@@ -102,11 +132,19 @@ router.post('/', async (req, res, next) => {
 router.put('/:id', async (req, res, next) => {
   try {
     const id = parseInt(req.params.id);
-    const { title, summary, content, cover_image } = req.body;
+    const { title, summary, content, cover_image, is_featured } = req.body;
 
     const existing = await prisma.posts.findFirst({ where: { id, deleted_at: null } });
     if (!existing)
       return error(res, 'Không tìm thấy bài viết', 'NOT_FOUND', 404);
+
+    const featured = is_featured !== undefined ? (is_featured === true || is_featured === 'true') : undefined;
+    if (featured === true) {
+      await prisma.posts.updateMany({
+        where: { id: { not: id }, deleted_at: null },
+        data: { is_featured: false },
+      });
+    }
 
     await prisma.posts.update({
       where: { id },
@@ -115,10 +153,38 @@ router.put('/:id', async (req, res, next) => {
         ...(summary !== undefined && { summary }),
         ...(content && { content: sanitizeHtml(content, SANITIZE_OPTIONS) }),
         ...(cover_image !== undefined && { cover_image }),
+        ...(featured !== undefined && { is_featured: featured }),
       },
     });
 
     return success(res, null, 'Cập nhật thành công');
+  } catch (err) {
+    next(err);
+  }
+});
+
+// PATCH /api/v1/admin/posts/:id/featured - Toggle or set featured post
+router.patch('/:id/featured', async (req, res, next) => {
+  try {
+    const id = parseInt(req.params.id);
+    const existing = await prisma.posts.findFirst({ where: { id, deleted_at: null } });
+    if (!existing)
+      return error(res, 'Không tìm thấy bài viết', 'NOT_FOUND', 404);
+
+    const nextState = !existing.is_featured;
+    if (nextState) {
+      await prisma.posts.updateMany({
+        where: { id: { not: id }, deleted_at: null },
+        data: { is_featured: false },
+      });
+    }
+
+    await prisma.posts.update({
+      where: { id },
+      data: { is_featured: nextState },
+    });
+
+    return success(res, { is_featured: nextState }, nextState ? 'Đã ghim làm bài viết nổi bật' : 'Đã bỏ ghim nổi bật');
   } catch (err) {
     next(err);
   }

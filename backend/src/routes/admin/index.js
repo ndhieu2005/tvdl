@@ -10,5 +10,9 @@ router.use('/uploads', auth, require('./uploads'));
 router.use('/events', auth, require('./events'));
 router.use('/posts', auth, require('./posts'));
 router.use('/quotes', auth, require('./quotes'));
+router.use('/users', auth, require('./users'));
+router.use('/locations', auth, require('./locations'));
+router.use('/categories', auth, require('./categories'));
+router.use('/age-groups', auth, require('./ageGroups'));
 
 module.exports = router;

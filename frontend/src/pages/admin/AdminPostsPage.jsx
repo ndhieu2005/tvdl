@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { Plus, Pencil, Trash2, Check, Bold, Italic, List, ListOrdered, Heading2, Heading3, ImagePlus } from 'lucide-react';
+import { Plus, Pencil, Trash2, Check, Star, Bold, Italic, List, ListOrdered, Heading2, Heading3, ImagePlus } from 'lucide-react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
@@ -47,7 +47,7 @@ function PostEditor({ editor, onInsertImage, uploading }) {
   );
 }
 
-const EMPTY_FORM = { title: '', summary: '', cover_image: '' };
+const EMPTY_FORM = { title: '', summary: '', cover_image: '', is_featured: false };
 
 export default function AdminPostsPage() {
   const toast = useToast();
@@ -88,9 +88,20 @@ export default function AdminPostsPage() {
         title: full.title || '',
         summary: full.summary || '',
         cover_image: full.cover_image || '',
+        is_featured: !!full.is_featured,
       });
     } catch (err) {
       toast.error(err.response?.data?.message || 'Lỗi tải bài viết');
+    }
+  }
+
+  async function handleToggleFeatured(post) {
+    try {
+      const res = await adminApi.patch(`/posts/${post.id}/featured`);
+      toast.success(res.data?.message || 'Cập nhật thành công');
+      crud.reload();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Lỗi cập nhật nổi bật');
     }
   }
 
@@ -115,13 +126,22 @@ export default function AdminPostsPage() {
 
   function save() {
     const content = editor?.getHTML() || '';
-    crud.handleSave((f) => ({ title: f.title, summary: f.summary, cover_image: f.cover_image, content }));
+    crud.handleSave((f) => ({
+      title: f.title,
+      summary: f.summary,
+      cover_image: f.cover_image,
+      is_featured: f.is_featured,
+      content,
+    }));
   }
 
   return (
     <div className="p-8">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-blue">Bài viết</h1>
+        <div>
+          <h1 className="text-2xl font-bold text-blue">Bài viết</h1>
+          <p className="text-muted text-xs mt-1">Quản lý bài viết và tin tức. Bạn có thể ghim 1 bài viết làm bài nổi bật hoặc hệ thống sẽ tự động chọn bài mới nhất.</p>
+        </div>
         <button onClick={openCreate} className="flex items-center gap-2 bg-blue text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-blue-light transition-colors">
           <Plus size={16} /> Đăng bài
         </button>
@@ -139,10 +159,30 @@ export default function AdminPostsPage() {
                     {p.cover_image ? <img src={p.cover_image} alt="" className="w-full h-full object-cover" /> : <span>📰</span>}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-blue text-sm truncate">{p.title}</p>
-                    <p className="text-muted text-xs truncate">/news/{p.slug} · {new Date(p.created_at).toLocaleDateString('vi-VN')}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-semibold text-blue text-sm truncate">{p.title}</p>
+                      {p.is_featured && (
+                        <span className="inline-flex items-center gap-1 bg-yellow/20 text-yellow-800 text-[11px] font-semibold px-2 py-0.5 rounded-full shrink-0 border border-yellow/40">
+                          ⭐ Nổi bật
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 text-muted text-xs truncate mt-0.5">
+                      <span>/news/{p.slug}</span>
+                      <span>·</span>
+                      <span>{new Date(p.created_at).toLocaleDateString('vi-VN')}</span>
+                      <span>·</span>
+                      <span className="text-blue/80 font-medium">Tác giả: {p.author?.name || p.author?.username || '—'}</span>
+                    </div>
                   </div>
-                  <div className="flex gap-2 shrink-0">
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      onClick={() => handleToggleFeatured(p)}
+                      title={p.is_featured ? 'Bỏ ghim nổi bật' : 'Ghim làm nổi bật'}
+                      className={`p-2 rounded-lg transition-colors ${p.is_featured ? 'text-yellow-600 bg-yellow/10 hover:bg-yellow/20' : 'text-gray-400 hover:text-yellow-600 hover:bg-yellow/10'}`}
+                    >
+                      <Star size={16} className={p.is_featured ? 'fill-yellow-500 text-yellow-500' : ''} />
+                    </button>
                     <button onClick={() => openEdit(p)} className="p-2 text-blue hover:bg-blue/10 rounded-lg transition-colors"><Pencil size={15} /></button>
                     <button onClick={() => crud.handleDelete(p.id)} className="p-2 text-red-400 hover:bg-red-50 rounded-lg transition-colors"><Trash2 size={15} /></button>
                   </div>
@@ -162,6 +202,18 @@ export default function AdminPostsPage() {
               {crud.modal === 'create' && form.title && (
                 <p className="text-muted text-xs mt-1">Slug URL sẽ tự tạo từ tiêu đề</p>
               )}
+            </FormField>
+            <FormField label="Ghim làm bài viết nổi bật?">
+              <label className="flex items-center gap-2 mt-1 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={form.is_featured}
+                  onChange={(e) => setForm({ ...form, is_featured: e.target.checked })}
+                  className="w-4 h-4 text-blue rounded border-gray-300 focus:ring-blue cursor-pointer"
+                />
+                <span className="text-sm font-medium text-blue">Đặt làm bài viết nổi bật</span>
+              </label>
+              <p className="text-muted text-xs mt-1">Bài viết nổi bật sẽ hiển thị cố định ở cột bên trái trang Tin tức. Nếu không chọn, hệ thống sẽ tự động chọn bài mới nhất.</p>
             </FormField>
             <FormField label="Tóm tắt">
               <TextArea rows={2} value={form.summary} onChange={(e) => setForm({ ...form, summary: e.target.value })} />

@@ -41,10 +41,17 @@ export default function SchedulePage() {
   const [calendarHeight, setCalendarHeight] = useState(0);
 
   useEffect(() => {
-    if (calendarRef.current) {
-      setCalendarHeight(calendarRef.current.offsetHeight);
-    }
-  }, [schedules]);
+    if (!calendarRef.current) return;
+    const updateHeight = () => {
+      if (calendarRef.current) {
+        setCalendarHeight(calendarRef.current.offsetHeight);
+      }
+    };
+    updateHeight();
+    const ro = new ResizeObserver(updateHeight);
+    ro.observe(calendarRef.current);
+    return () => ro.disconnect();
+  }, []);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch pattern: bật loading sync khi đổi tháng
@@ -141,13 +148,12 @@ export default function SchedulePage() {
     : 'Lịch cả tháng';
 
   return (
-    <div className="min-h-[calc(100vh-64px)] py-5 sm:py-12">
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-        <h1 className="text-3xl sm:text-5xl font-semibold text-blue mb-6 sm:mb-20 pl-5 sm:pl-10">
-          Lịch hoạt động
-        </h1>
+    <div className="min-h-[calc(100vh-64px)] px-10 py-5 sm:px-28 sm:py-12">
+      <h1 className="text-3xl sm:text-5xl font-semibold text-blue mb-6 sm:mb-20">
+        Lịch hoạt động
+      </h1>
 
-        <div className="flex flex-col sm:flex-row gap-8">
+      <div className="flex flex-col sm:flex-row gap-8">
           {/* Calendar */}
           <div className="flex-[2] h-fit" ref={calendarRef}>
             <div className="border-0 sm:border sm:border-[#424241]">
@@ -213,7 +219,7 @@ export default function SchedulePage() {
                     return (
                       <div
                         key={index}
-                        className={`relative group min-h-[50px] sm:min-h-[80px] p-0.5 sm:p-1 border rounded cursor-pointer transition-all ${
+                        className={`relative group min-h-[60px] sm:min-h-[105px] p-1 sm:p-1.5 border rounded cursor-pointer transition-all ${
                           day ? '' : 'opacity-0 pointer-events-none'
                         } ${
                           isSelected ? 'bg-white' : 'bg-[#F9F3E1] hover:bg-[#f9efd4]'
@@ -222,10 +228,10 @@ export default function SchedulePage() {
                       >
                         {day && (
                           <>
-                            <div className="text-xs sm:text-sm font-medium mb-0 sm:mb-1 pl-0.5 sm:pl-1 text-[#2B2B2B]">
+                            <div className="text-xs sm:text-sm font-medium mb-1 sm:mb-1.5 pl-0.5 sm:pl-1 text-[#2B2B2B]">
                               {day}
                             </div>
-                            <div className="space-y-0.5">
+                            <div className="space-y-1">
                               {daySchedules.map((s) => (
                                 <div
                                   key={s.id}
@@ -356,6 +362,5 @@ export default function SchedulePage() {
           </div>
         </div>
       </div>
-    </div>
   );
 }

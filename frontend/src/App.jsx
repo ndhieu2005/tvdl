@@ -22,6 +22,8 @@ import AdminSchedulesPage from './pages/admin/AdminSchedulesPage';
 import AdminEventsPage from './pages/admin/AdminEventsPage';
 import AdminPostsPage from './pages/admin/AdminPostsPage';
 import SuggestionsPage from './pages/admin/SuggestionsPage';
+import AdminUsersPage from './pages/admin/AdminUsersPage';
+import AdminTaxonomyPage from './pages/admin/AdminTaxonomyPage';
 
 function RequireAuth({ children }) {
   const token = localStorage.getItem('tvdl_token');
@@ -54,11 +56,13 @@ export default function App() {
         <Route path="/admin" element={<RequireAuth><AdminLayout /></RequireAuth>}>
           <Route index element={<Navigate to="/admin/schedules" replace />} />
           <Route path="new-books" element={<AdminNewBooksPage />} />
+          <Route path="taxonomy" element={<AdminTaxonomyPage />} />
           <Route path="quotes" element={<AdminQuotesPage />} />
           <Route path="schedules" element={<AdminSchedulesPage />} />
           <Route path="events" element={<AdminEventsPage />} />
           <Route path="posts" element={<AdminPostsPage />} />
           <Route path="suggestions" element={<SuggestionsPage />} />
+          <Route path="users" element={<AdminUsersPage />} />
         </Route>
       </Routes>
       </ConfirmProvider>
