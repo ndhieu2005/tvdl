@@ -232,7 +232,7 @@ export default function SchedulePage() {
                                   className="text-[7px] sm:text-[9px] leading-tight px-0.5 sm:px-1 py-0.5 rounded truncate text-white font-medium"
                                   style={{ backgroundColor: s.location?.color_code || '#1B3F8B' }}
                                 >
-                                  {s.time_frame}
+                                  Mở cửa {s.location?.name || s.custom_location_name}
                                 </div>
                               ))}
                               {dayEvents.map((ev) => (
@@ -313,9 +313,6 @@ export default function SchedulePage() {
                       borderLeftColor: ev.is_featured ? '#F5C000' : (ev.color || '#1B3F8B'),
                     }}
                   >
-                    <p className="text-xs text-[#9CA3AF]">
-                      {new Date(ev.event_datetime).toLocaleDateString('vi-VN')}
-                    </p>
                     <h4 className="font-bold text-blue mb-1 flex items-center gap-1.5 flex-wrap">
                       {ev.name}
                       {ev.is_featured && (
@@ -341,9 +338,6 @@ export default function SchedulePage() {
                       borderLeftColor: s.location?.color_code || '#1B3F8B',
                     }}
                   >
-                    <p className="text-xs text-[#9CA3AF]">
-                      {new Date(s.date).toLocaleDateString('vi-VN')}
-                    </p>
                     <h4 className="font-bold text-yellow mb-1">
                       {s.time_frame} — {SHIFT_LABELS[s.shift] || s.shift}
                     </h4>

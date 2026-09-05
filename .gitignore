@@ -5,3 +5,5 @@ backend/uploads/
 
 # Tai lieu client
 *.docx
+
+frontend/ref/

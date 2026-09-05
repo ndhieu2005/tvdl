@@ -1,16 +1,28 @@
 import { useRef, useState } from 'react';
 import { Upload } from 'lucide-react';
 import { adminApi } from '../lib/api';
+import { useToast } from './ui/Toast';
+
+const MAX_SIZE_MB = 10;
+const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
 
 // Ô nhập URL ảnh kèm nút chọn file: upload qua /admin/uploads rồi tự điền URL trả về
 export default function ImageUploadField({ label, value, onChange }) {
   const inputRef = useRef(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState(null);
+  const toast = useToast();
 
   async function handleFile(e) {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    if (file.size > MAX_SIZE_BYTES) {
+      toast.error(`Ảnh quá lớn. Kích thước tối đa là ${MAX_SIZE_MB} MB.`);
+      e.target.value = '';
+      return;
+    }
+
     setUploading(true);
     setError(null);
     try {

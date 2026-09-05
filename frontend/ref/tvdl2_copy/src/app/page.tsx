@@ -25,13 +25,13 @@ export default function HomePage() {
       url: "/services",
       text: "DỊCH VỤ THƯ VIỆN",
       background:
-        "bg-primary-yellow sm:bg-primary-blue duration-200 hover:bg-primary-blue-hover",
+        "bg-primary-blue sm:bg-primary-blue duration-200 hover:bg-primary-blue-hover",
     },
     {
       url: "/news",
       text: "TIN TỨC",
       background:
-        "bg-primary-blue sm:bg-primary-yellow duration-200 hover:bg-primary-yellow-hover",
+        "bg-primary-yellow sm:bg-primary-yellow duration-200 hover:bg-primary-yellow-hover",
     },
   ];
 
@@ -57,7 +57,7 @@ export default function HomePage() {
               href={item.url}
               className={clsx(
                 "w-full sm:w-1/2 h-20 text-base sm:text-xl flex items-center justify-center",
-                item.background
+                item.background,
               )}
             >
               <ArrowRightIcon className="max-h-2 mr-2 w-auto" />

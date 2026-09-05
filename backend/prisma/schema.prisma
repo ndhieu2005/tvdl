@@ -85,6 +85,9 @@ model New_Books {
   publisher         String?    @db.VarChar(255)
   publish_year      Int?
   page_count        Int?
+  month_year        String?    @db.VarChar(7)
+  is_featured       Boolean    @default(false)
+  skoolib_url       String?    @db.VarChar(500)
   location_id       Int
   category_id       Int
   created_at        DateTime   @default(now())
@@ -160,4 +163,13 @@ model Posts {
   created_at  DateTime  @default(now())
   updated_at  DateTime  @updatedAt
   deleted_at  DateTime?
+}
+
+model Quotes {
+  id         Int       @id @default(autoincrement())
+  content    String    @db.Text
+  author     String?   @db.VarChar(255)
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
 }

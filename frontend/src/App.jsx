@@ -17,6 +17,7 @@ import PostDetailPage from './pages/public/PostDetailPage';
 
 import LoginPage from './pages/admin/LoginPage';
 import AdminNewBooksPage from './pages/admin/AdminNewBooksPage';
+import AdminQuotesPage from './pages/admin/AdminQuotesPage';
 import AdminSchedulesPage from './pages/admin/AdminSchedulesPage';
 import AdminEventsPage from './pages/admin/AdminEventsPage';
 import AdminPostsPage from './pages/admin/AdminPostsPage';
@@ -53,6 +54,7 @@ export default function App() {
         <Route path="/admin" element={<RequireAuth><AdminLayout /></RequireAuth>}>
           <Route index element={<Navigate to="/admin/schedules" replace />} />
           <Route path="new-books" element={<AdminNewBooksPage />} />
+          <Route path="quotes" element={<AdminQuotesPage />} />
           <Route path="schedules" element={<AdminSchedulesPage />} />
           <Route path="events" element={<AdminEventsPage />} />
           <Route path="posts" element={<AdminPostsPage />} />

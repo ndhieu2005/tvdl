@@ -15,12 +15,12 @@ const MENUS = [
   {
     to: '/services',
     text: 'DỊCH VỤ THƯ VIỆN',
-    className: 'bg-yellow sm:bg-blue duration-200 hover:bg-blue-light',
+    className: 'bg-blue sm:bg-blue duration-200 hover:bg-blue-light',
   },
   {
     to: '/news',
     text: 'TIN TỨC',
-    className: 'bg-blue sm:bg-yellow duration-200 hover:bg-yellow-dark',
+    className: 'bg-yellow sm:bg-yellow duration-200 hover:bg-yellow-dark',
   },
 ];
 

@@ -9,5 +9,6 @@ router.use('/suggestions', auth, require('./suggestions'));
 router.use('/uploads', auth, require('./uploads'));
 router.use('/events', auth, require('./events'));
 router.use('/posts', auth, require('./posts'));
+router.use('/quotes', auth, require('./quotes'));
 
 module.exports = router;

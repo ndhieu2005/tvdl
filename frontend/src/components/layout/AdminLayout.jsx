@@ -1,10 +1,11 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { CalendarDays, Sparkles, BookPlus, Newspaper, MessageSquare, LogOut } from 'lucide-react';
+import { CalendarDays, Sparkles, BookPlus, Newspaper, MessageSquare, Quote, LogOut } from 'lucide-react';
 
 const ADMIN_NAV = [
   { label: 'Lịch hoạt động', to: '/admin/schedules', icon: CalendarDays },
   { label: 'Sự kiện', to: '/admin/events', icon: Sparkles },
   { label: 'Sách mới', to: '/admin/new-books', icon: BookPlus },
+  { label: 'Trích dẫn', to: '/admin/quotes', icon: Quote },
   { label: 'Bài viết', to: '/admin/posts', icon: Newspaper },
   { label: 'Đề xuất', to: '/admin/suggestions', icon: MessageSquare },
 ];

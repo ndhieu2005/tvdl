@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Pencil, Trash2, Check } from 'lucide-react';
+import { Plus, Pencil, Trash2, Check, Star, ExternalLink } from 'lucide-react';
 import { api } from '../../lib/api';
 import Modal from '../../components/Modal';
 import ImageUploadField from '../../components/ImageUploadField';
@@ -7,9 +7,15 @@ import Pagination from '../../components/ui/Pagination';
 import { FormField, TextInput, Select, TextArea } from '../../components/ui/FormField';
 import useCrudList from '../../hooks/useCrudList';
 
+const getCurrentMonthYear = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+};
+
 const EMPTY_FORM = {
   title: '', author: '', book_code: '', cover_image: '', short_description: '',
   publisher: '', publish_year: '', page_count: '', location_id: '', category_id: '',
+  month_year: getCurrentMonthYear(), is_featured: false, skoolib_url: '',
 };
 
 export default function AdminNewBooksPage() {
@@ -22,9 +28,10 @@ export default function AdminNewBooksPage() {
     confirmDelete: 'Xoá sách này?',
     validate: (f) => {
       const errs = {};
-      if (!f.title.trim()) errs.title = 'Nhập tên sách';
+      if (!f.title?.trim()) errs.title = 'Nhập tên sách';
       if (!f.location_id) errs.location_id = 'Chọn cơ sở';
       if (!f.category_id) errs.category_id = 'Chọn thể loại';
+      if (!f.skoolib_url?.trim()) errs.skoolib_url = 'Nhập đường link sách Skoolib';
       return errs;
     },
     toForm: (b) => ({
@@ -36,6 +43,9 @@ export default function AdminNewBooksPage() {
       publisher: b.publisher || '',
       publish_year: b.publish_year ?? '',
       page_count: b.page_count ?? '',
+      month_year: b.month_year || getCurrentMonthYear(),
+      is_featured: !!b.is_featured,
+      skoolib_url: b.skoolib_url || '',
       location_id: b.location?.id || '',
       category_id: b.category?.id || '',
     }),
@@ -50,7 +60,10 @@ export default function AdminNewBooksPage() {
   return (
     <div className="p-8">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-blue">Sách mới</h1>
+        <div>
+          <h1 className="text-2xl font-bold text-blue">Sách mới</h1>
+          <p className="text-muted text-xs mt-1">Quản lý sách mới theo tháng. Mỗi tháng có 1 sách nổi bật và tối đa 6 sách trong danh sách phụ.</p>
+        </div>
         <button onClick={() => crud.openCreate()} className="flex items-center gap-2 bg-blue text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-blue-light transition-colors">
           <Plus size={16} /> Thêm sách
         </button>
@@ -68,14 +81,36 @@ export default function AdminNewBooksPage() {
                     {b.cover_image ? <img src={b.cover_image} alt="" className="w-full h-full object-cover rounded" /> : <span>📚</span>}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-blue text-sm truncate">
-                      {b.title}
-                      {b.book_code && <span className="ml-2 text-muted text-xs font-normal">({b.book_code})</span>}
-                    </p>
-                    <p className="text-muted text-xs">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="font-semibold text-blue text-sm truncate">
+                        {b.title}
+                        {b.book_code && <span className="ml-2 text-muted text-xs font-normal">({b.book_code})</span>}
+                      </p>
+                      {b.is_featured && (
+                        <span className="inline-flex items-center gap-1 bg-yellow/20 text-[#92400E] border border-yellow/40 text-[11px] font-bold px-2 py-0.5 rounded-full">
+                          <Star size={11} className="fill-yellow text-yellow" /> Nổi bật
+                        </span>
+                      )}
+                      {b.month_year && (
+                        <span className="bg-blue/10 text-blue text-[11px] font-medium px-2 py-0.5 rounded">
+                          Tháng {b.month_year}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-muted text-xs mt-0.5">
                       {b.author} · {b.category?.name} · {b.location?.name}
                       {b.publisher && ` · ${b.publisher}${b.publish_year ? ` ${b.publish_year}` : ''}`}
                     </p>
+                    {b.skoolib_url && (
+                      <a
+                        href={b.skoolib_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-[11px] text-blue/70 hover:text-blue hover:underline mt-1"
+                      >
+                        <ExternalLink size={11} /> {b.skoolib_url}
+                      </a>
+                    )}
                   </div>
                   <div className="flex gap-2 shrink-0">
                     <button onClick={() => crud.openEdit(b)} className="p-2 text-blue hover:bg-blue/10 rounded-lg transition-colors"><Pencil size={15} /></button>
@@ -95,6 +130,37 @@ export default function AdminNewBooksPage() {
             <FormField label="Tên sách" required error={crud.errors.title}>
               <TextInput value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
             </FormField>
+
+            <div className="grid grid-cols-2 gap-3">
+              <FormField label="Tháng / Năm" required>
+                <TextInput
+                  type="month"
+                  value={form.month_year}
+                  onChange={(e) => setForm({ ...form, month_year: e.target.value })}
+                />
+              </FormField>
+
+              <FormField label="Sách nổi bật tháng này?">
+                <label className="flex items-center gap-2 mt-2.5 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={form.is_featured}
+                    onChange={(e) => setForm({ ...form, is_featured: e.target.checked })}
+                    className="w-4 h-4 text-blue rounded border-gray-300 focus:ring-blue"
+                  />
+                  <span className="text-sm font-medium text-blue">Đặt làm sách nổi bật</span>
+                </label>
+              </FormField>
+            </div>
+
+            <FormField label="Đường link sách Skoolib" required error={crud.errors.skoolib_url}>
+              <TextInput
+                placeholder="https://..."
+                value={form.skoolib_url}
+                onChange={(e) => setForm({ ...form, skoolib_url: e.target.value })}
+              />
+            </FormField>
+
             <div className="grid grid-cols-2 gap-3">
               <FormField label="Tác giả">
                 <TextInput value={form.author} onChange={(e) => setForm({ ...form, author: e.target.value })} />
@@ -130,7 +196,7 @@ export default function AdminNewBooksPage() {
               </FormField>
             </div>
             <FormField label="Mô tả ngắn">
-              <TextArea value={form.short_description} onChange={(e) => setForm({ ...form, short_description: e.target.value })} />
+              <TextArea rows={3} value={form.short_description} onChange={(e) => setForm({ ...form, short_description: e.target.value })} />
             </FormField>
           </div>
           <div className="flex justify-end gap-3 mt-5">

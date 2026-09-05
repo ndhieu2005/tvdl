@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 const SERVICES = [
   { text: 'Tra cứu\ntài liệu', href: 'https://skoolib.net/li/tvdlcs1/opac-public' },
   { text: 'Sách mới', to: '/new-books' },
+  { text: 'Đề xuất\nsách', to: '/suggest' },
 ];
 
 function ShortArrowRightIcon({ className }) {
@@ -20,14 +21,14 @@ export default function ServicesPage() {
         Dịch vụ thư viện
       </h1>
 
-      <div className="flex-1 grid grid-cols-1 sm:grid-cols-2">
+      <div className="flex-1 flex flex-col sm:flex-row">
         {SERVICES.map((item, index) => {
-          const className = `flex flex-col items-center text-white h-36 sm:h-auto py-5 sm:py-14 px-6 duration-150 ${
+          const className = `flex-1 flex flex-col items-center text-white py-5 sm:py-14 px-6 duration-150 ${
             index % 2 === 0 ? 'bg-blue hover:opacity-90' : 'bg-yellow hover:opacity-90'
           }`;
           const inner = (
             <>
-              <ShortArrowRightIcon className="h-3.5 sm:h-7 w-auto rotate-90" />
+              <ShortArrowRightIcon className="h-3.5 sm:h-7 w-auto sm:rotate-90" />
               <p className="text-center font-medium text-base sm:text-3xl h-full flex items-center whitespace-pre-line">
                 {item.text}
               </p>
