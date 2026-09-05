@@ -1,4 +1,19 @@
-@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;1,700&display=swap');
+@font-face {
+  font-family: 'Raleway';
+  src: url('/fonts/Raleway-VariableFont_wght.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Raleway';
+  src: url('/fonts/Raleway-Italic-VariableFont_wght.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}
+
 @import "tailwindcss";
 
 @theme {
@@ -14,7 +29,7 @@
   --color-light-blue: #e7ebf6;
 
   /* === Font === */
-  --font-sans: 'Be Vietnam Pro', system-ui, sans-serif;
+  --font-sans: 'Raleway', system-ui, sans-serif;
 
   /* === Font sizes === */
   --text-hero: 6rem;
