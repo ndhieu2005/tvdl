@@ -65,7 +65,7 @@ docker compose up -d --build              # Rebuild + restart thủ công
 - `Admins`, `Age_Groups`, `Categories`, `Locations` — `Locations.type` distinguishes branches; `id=3` = Dự án lưu động
 
 **Legacy tables** (từng sync từ Skoolib — tính năng sync đã gỡ, data giữ nguyên):
-- `Readers` (has `reader_code`, vẫn dùng validate mã bạn đọc ở form Đề xuất), `Books` (has `category_id`) — Books → Categories is **1-N**
+- `Readers` (has `reader_code`), `Books` (has `category_id`) — Books → Categories is **1-N**
 
 **Website-generated tables**:
 - `New_Books` (has `category_id`), `Book_Suggestions`, `Schedule_Templates`

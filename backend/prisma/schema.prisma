@@ -60,7 +60,6 @@ model Readers {
   created_at  DateTime   @default(now())
   updated_at  DateTime   @updatedAt
   deleted_at  DateTime?
-  book_suggestions Book_Suggestions[]
 }
 
 model Books {
@@ -102,14 +101,14 @@ model New_Books {
 
 model Book_Suggestions {
   id           Int         @id @default(autoincrement())
-  reader_code  String      @db.VarChar(50)
+  reader_name  String?     @db.VarChar(255)
+  reader_code  String?     @db.VarChar(50)
   email        String?     @db.VarChar(255)
   book_name    String?     @db.VarChar(255)
   category_id  Int?
   age_group_id Int?
   description  String?     @db.Text
   created_at   DateTime    @default(now())
-  reader       Readers     @relation(fields: [reader_code], references: [reader_code])
   category     Categories? @relation(fields: [category_id], references: [id])
   age_group    Age_Groups? @relation(fields: [age_group_id], references: [id])
 }

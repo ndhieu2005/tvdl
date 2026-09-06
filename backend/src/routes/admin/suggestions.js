@@ -17,11 +17,12 @@ router.get('/', async (req, res, next) => {
         orderBy: { created_at: 'desc' },
         select: {
           id: true,
+          reader_name: true,
+          reader_code: true,
           email: true,
           book_name: true,
           description: true,
           created_at: true,
-          reader: { select: { reader_code: true, full_name: true } },
           category: { select: { id: true, name: true } },
           age_group: { select: { id: true, name: true } },
         },

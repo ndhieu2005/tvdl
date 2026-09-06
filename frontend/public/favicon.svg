@@ -25,6 +25,16 @@
       .cls-6 {
         fill: url(#linear-gradient);
       }
+
+      @media (prefers-color-scheme: dark) {
+        .cls-1,
+        .cls-3,
+        .cls-4,
+        .cls-5,
+        .cls-6 {
+          fill: #ffffff;
+        }
+      }
     </style>
     <linearGradient id="linear-gradient" x1="80.18" y1="9.86" x2="80.2" y2="9.86" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#003c98"/>

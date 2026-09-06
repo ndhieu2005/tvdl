@@ -63,9 +63,9 @@ export default function HubPage() {
             <Link
               key={item.to}
               to={item.to}
-              className={`w-full sm:w-1/2 h-20 text-base sm:text-xl flex items-center justify-center ${item.className}`}
+              className={`w-full sm:w-1/2 h-20 text-base font-semibold sm:text-xl flex items-center justify-center ${item.className}`}
             >
-              <ArrowRightIcon className="max-h-2 mr-2 w-auto" />
+              <ArrowRightIcon className="max-h-2 mr-2 w-auto " />
               {item.text}
             </Link>
           ))}
@@ -76,7 +76,7 @@ export default function HubPage() {
           href="https://skoolib.net/li/tvdlcs1/opac-public"
           target="_blank"
           rel="noopener noreferrer"
-          className="h-20 text-base sm:text-xl flex items-center justify-center bg-dark duration-200 hover:opacity-80 text-white"
+          className="h-20 text-base font-semibold  sm:text-xl flex items-center justify-center bg-dark duration-200 hover:opacity-80 text-white"
         >
           <SearchIcon className="text-white h-3.5 mr-2 sm:mr-5 w-auto" />
           TÌM KIẾM

@@ -160,13 +160,24 @@ function QuoteSection({ quote }) {
 }
 
 function MonthSection({ monthData }) {
-  const { featured_book, grid_books, quote } = monthData;
+  const { featured_book, grid_books, quote, month_label } = monthData;
 
   // Đảm bảo grid có tối đa 6 sách (2 hàng x 3 cột)
   const displayGridBooks = (grid_books || []).slice(0, 6);
 
   return (
-    <div className="w-full space-y-0">
+    <div className="w-full space-y-4 sm:space-y-5">
+      {/* Label tháng */}
+      {month_label && (
+        <div className="flex items-center gap-3">
+          <div className="w-1.5 h-6 sm:h-7 bg-yellow shrink-0" />
+          <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-blue tracking-tight">
+            {month_label}
+          </h2>
+          <div className="h-[1px] bg-[#9CA3AF]/40 flex-1 ml-2" />
+        </div>
+      )}
+
       {/* Khối chính 2 cột: Bên trái nền vàng kem (#FAF3DE), bên phải nền xám xanh (#F0F4F8) */}
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 items-stretch shadow-xs">
         {/* Nửa trái: Sách nổi bật (Nền vàng kem nhạt) */}

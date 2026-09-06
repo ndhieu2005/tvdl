@@ -31,6 +31,7 @@ export default function SuggestionPage() {
   const [categories, setCategories] = useState([]);
 
   const [form, setForm] = useState({
+    reader_name: '',
     reader_code: '',
     email: '',
     book_name: '',
@@ -51,10 +52,6 @@ export default function SuggestionPage() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!form.reader_code.trim()) {
-      setError('Vui lòng nhập mã bạn đọc.');
-      return;
-    }
     if (!form.book_name.trim()) {
       setError('Vui lòng nhập tên sách đề xuất.');
       return;
@@ -63,7 +60,8 @@ export default function SuggestionPage() {
     setError('');
     try {
       await api.post('/suggestions', {
-        reader_code: form.reader_code.trim(),
+        reader_name: form.reader_name.trim() || undefined,
+        reader_code: form.reader_code.trim() || undefined,
         email: form.email.trim() || undefined,
         book_name: form.book_name.trim(),
         age_group_id: form.age_group_id || undefined,
@@ -84,7 +82,7 @@ export default function SuggestionPage() {
     localStorage.removeItem(STORAGE_KEY);
     setAlreadySubmitted(false);
     setSubmitted(false);
-    setForm({ reader_code: '', email: '', book_name: '', age_group_id: '', category_id: '', description: '' });
+    setForm({ reader_name: '', reader_code: '', email: '', book_name: '', age_group_id: '', category_id: '', description: '' });
     setError('');
   }
 
@@ -132,10 +130,27 @@ export default function SuggestionPage() {
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-7">
+          {/* Reader name */}
+          <div className="grid grid-cols-1 sm:grid-cols-[200px_1fr] md:grid-cols-[240px_1fr] items-center gap-2 sm:gap-6">
+            <label className="text-sm sm:text-base text-[#333333] font-medium">
+              Tên bạn đọc:
+            </label>
+            <div>
+              <input
+                type="text"
+                name="reader_name"
+                value={form.reader_name}
+                onChange={handleChange}
+                placeholder="VD: Nguyễn Văn A"
+                className="w-full border-b border-gray-400 bg-transparent py-1.5 text-sm sm:text-base text-[#2B2B2B] placeholder:text-gray-400 focus:outline-none focus:border-blue transition-colors"
+              />
+            </div>
+          </div>
+
           {/* Reader code */}
           <div className="grid grid-cols-1 sm:grid-cols-[200px_1fr] md:grid-cols-[240px_1fr] items-center gap-2 sm:gap-6">
             <label className="text-sm sm:text-base text-[#333333] font-medium">
-              Mã bạn đọc: <span className="text-yellow font-bold">*</span>
+              Mã bạn đọc:
             </label>
             <div>
               <input
@@ -143,7 +158,7 @@ export default function SuggestionPage() {
                 name="reader_code"
                 value={form.reader_code}
                 onChange={handleChange}
-                placeholder="VD: BĐ00123"
+                placeholder="VD: BĐ00123 (nếu có)"
                 className="w-full border-b border-gray-400 bg-transparent py-1.5 text-sm sm:text-base text-[#2B2B2B] placeholder:text-gray-400 focus:outline-none focus:border-blue transition-colors"
               />
             </div>

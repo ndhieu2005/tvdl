@@ -5,23 +5,20 @@ const { success, error } = require('../../utils/response');
 // POST /api/v1/suggestions
 router.post('/', async (req, res, next) => {
   try {
-    const { reader_code, email, book_name, category_id, age_group_id, description } = req.body;
+    const { reader_name, reader_code, email, book_name, category_id, age_group_id, description } = req.body;
 
-    if (!reader_code)
-      return error(res, 'Thiếu mã bạn đọc', 'VALIDATION_ERROR', 400);
-
-    const reader = await prisma.readers.findUnique({ where: { reader_code } });
-    if (!reader || reader.deleted_at)
-      return error(res, 'Mã bạn đọc không tồn tại', 'NOT_FOUND', 404);
+    if (!book_name || !book_name.trim())
+      return error(res, 'Vui lòng nhập tên sách đề xuất', 'VALIDATION_ERROR', 400);
 
     const suggestion = await prisma.book_Suggestions.create({
       data: {
-        reader_code,
-        email: email || null,
-        book_name: book_name || null,
+        reader_name: reader_name ? reader_name.trim() : null,
+        reader_code: reader_code ? reader_code.trim() : null,
+        email: email ? email.trim() : null,
+        book_name: book_name.trim(),
         category_id: category_id ? parseInt(category_id) : null,
         age_group_id: age_group_id ? parseInt(age_group_id) : null,
-        description: description || null,
+        description: description ? description.trim() : null,
       },
     });
 

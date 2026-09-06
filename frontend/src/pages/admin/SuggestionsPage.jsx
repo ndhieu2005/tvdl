@@ -43,8 +43,11 @@ export default function SuggestionsPage() {
                         {s.book_name || <span className="text-muted italic">Không có tên sách</span>}
                       </p>
                       <p className="text-xs text-muted mt-0.5">
-                        Bạn đọc: <span className="text-blue font-medium">{s.reader?.reader_code}</span>
-                        {s.reader?.full_name && ` — ${s.reader.full_name}`}
+                        Bạn đọc:{' '}
+                        <span className="text-blue font-medium">
+                          {s.reader_name || s.reader_code || 'Bạn đọc'}
+                        </span>
+                        {s.reader_code && s.reader_name && ` (${s.reader_code})`}
                         {s.email && ` · ${s.email}`}
                       </p>
                       {s.category && (

@@ -80,12 +80,12 @@ echo "-- Suggestions (POST) --"
 R=$(curl -s -o /tmp/r -w "%{http_code}" -X POST "$BASE/suggestions" \
   -H "Content-Type: application/json" \
   -d '{}')
-check "POST /suggestions (no reader_code)" $R 400
+check "POST /suggestions (no book_name)" $R 400
 
 R=$(curl -s -o /tmp/r -w "%{http_code}" -X POST "$BASE/suggestions" \
   -H "Content-Type: application/json" \
-  -d '{"reader_code":"NOTEXIST"}')
-check "POST /suggestions (invalid reader_code)" $R 404
+  -d '{"book_name":"Dế Mèn Phiêu Lưu Ký","reader_name":"Nguyễn Văn A"}')
+check "POST /suggestions (valid without reader_code check)" $R 201
 
 echo ""
 echo "=== ADMIN AUTH ==="
