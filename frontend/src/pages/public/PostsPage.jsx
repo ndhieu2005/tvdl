@@ -108,7 +108,7 @@ export default function PostsPage() {
               <div className="mt-4 space-y-1.5">
                 <div className="flex items-start gap-2">
                   <span className="text-blue/80 text-sm font-light mt-0.5 select-none">☆</span>
-                  <h3 className="font-bold text-blue text-base sm:text-lg leading-snug group-hover:underline">
+                  <h3 className="font-bold text-blue text-base sm:text-xl leading-snug group-hover:underline">
                     {featured.title}
                   </h3>
                 </div>

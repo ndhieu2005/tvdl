@@ -273,7 +273,7 @@ export default function SuggestionPage() {
                 disabled={loading}
                 className="w-full bg-yellow hover:bg-yellow-dark text-white font-semibold py-3 sm:py-3.5 px-8 rounded-full uppercase tracking-wider text-sm sm:text-base shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? 'Đang gửi...' : 'ĐĂNG KÝ'}
+                {loading ? 'Đang gửi...' : 'GỬI ĐỀ XUẤT'}
               </button>
             </div>
           </div>

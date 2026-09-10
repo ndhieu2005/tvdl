@@ -59,37 +59,7 @@
   }
 }
 
-/*
-  Explicit color utilities. Tailwind v4 may not emit bg-blue / text-blue etc.
-  when those names already exist as multi-shade palettes (blue-50…blue-950,
-  yellow-50…yellow-950) in the default theme. Registering them here in
-  @layer utilities gives them the same variant support (hover:, sm:, focus:, …)
-  that Tailwind generates for every utility in this layer.
-*/
-@layer utilities {
-  /* backgrounds */
-  .bg-blue       { background-color: var(--color-blue); }
-  .bg-blue-light { background-color: var(--color-blue-light); }
-  .bg-yellow     { background-color: var(--color-yellow); }
-  .bg-yellow-dark{ background-color: var(--color-yellow-dark); }
-  .bg-dark       { background-color: var(--color-dark); }
-  .bg-cream      { background-color: var(--color-cream); }
-  .bg-light-blue { background-color: var(--color-light-blue); }
 
-  /* text */
-  .text-blue     { color: var(--color-blue); }
-  .text-yellow   { color: var(--color-yellow); }
-  .text-dark     { color: var(--color-dark); }
-  .text-muted    { color: var(--color-muted); }
-  .text-cream    { color: var(--color-cream); }
-
-  /* borders */
-  .border-blue   { border-color: var(--color-blue); }
-  .border-yellow { border-color: var(--color-yellow); }
-
-  /* ring (today-highlight in SchedulePage) */
-  .ring-blue     { --tw-ring-color: var(--color-blue); }
-}
 
 /*
   Typography cho nội dung bài viết (HTML từ TipTap, đã sanitize server-side).

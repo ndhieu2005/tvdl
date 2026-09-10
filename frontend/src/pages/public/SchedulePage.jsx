@@ -163,7 +163,7 @@ export default function SchedulePage() {
                   <span className="text-base sm:text-2xl font-medium text-[#2B2B2B]">
                     {MONTH_NAMES[month]} | {year}
                   </span>
-                  <div className="flex justify-between gap-4 w-40 sm:w-52 select-none font-light">
+                  <div className="flex justify-between gap-4 w-40 sm:w-52 select-none font-normal">
                     <button
                       className="flex items-center gap-1 cursor-pointer hover:text-blue"
                       onClick={prevMonth}
@@ -329,7 +329,7 @@ export default function SchedulePage() {
                           </span>
                         )}
                       </h4>
-                      <div className="space-y-1 text-xs sm:text-sm text-[#3F3F3F] font-light">
+                      <div className="space-y-1 text-xs sm:text-sm text-[#3F3F3F] font-normal">
                         <div className="flex items-center gap-1.5">
                           <Clock size={14} className="text-[#9CA3AF] shrink-0" />
                           <span>{formatTimeRange(ev)}</span>
@@ -342,7 +342,7 @@ export default function SchedulePage() {
                         )}
                       </div>
                       {ev.description && (
-                        <p className="text-xs text-[#9CA3AF] mt-1.5 line-clamp-2">{ev.description}</p>
+                        <p className="text-sm text-[#9CA3AF] mt-1.5 line-clamp-2">{ev.description}</p>
                       )}
                     </div>
                   );
@@ -366,7 +366,7 @@ export default function SchedulePage() {
                           </span>
                         )}
                       </h4>
-                      <div className="space-y-1 text-xs sm:text-sm text-[#3F3F3F] font-light">
+                      <div className="space-y-1 text-xs sm:text-sm text-[#3F3F3F] font-normal">
                         <div className="flex items-center gap-1.5">
                           <Clock size={14} className="text-[#9CA3AF] shrink-0" />
                           <span>{s.time_frame}</span>

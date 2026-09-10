@@ -29,7 +29,7 @@ export default function AboutPage() {
           className="bg-blue hover:bg-yellow text-white duration-200 w-52 sm:w-80 h-8 sm:h-12 pl-3 sm:pl-10 flex items-center gap-2 sm:gap-8"
         >
           <ShortArrowRightIcon className="h-2 sm:h-3 w-auto" />
-          <p className="font-extralight text-xs sm:text-sm">
+          <p className=" text-xs sm:text-sm">
             Liên hệ Thư viện Dương Liễu
           </p>
         </Link>
