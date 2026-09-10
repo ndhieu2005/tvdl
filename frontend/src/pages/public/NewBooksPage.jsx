@@ -7,22 +7,22 @@ function FeaturedBookCard({ book }) {
   if (!book) return null;
 
   return (
-    <div className="flex flex-col sm:flex-row gap-6 lg:gap-8 items-start h-full">
+    <div className="flex flex-col sm:flex-row gap-6 lg:gap-8 items-start h-full group">
       {/* Ảnh bìa sách lớn */}
       <a
         href={book.skoolib_url || '#'}
         target={book.skoolib_url ? '_blank' : undefined}
         rel="noopener noreferrer"
-        className="w-full sm:w-56 lg:w-64 shrink-0 aspect-[3/4] bg-white rounded-none overflow-hidden shadow-xs flex items-center justify-center border border-black/5 hover:opacity-95 transition-opacity"
+        className="w-full sm:w-56 lg:w-64 shrink-0 aspect-[3/4] bg-white rounded-none overflow-hidden shadow-xs flex items-center justify-center border border-black/5 group-hover:shadow-lg transition-all duration-300"
       >
         {book.cover_image ? (
           <img
             src={book.cover_image}
             alt={book.title}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
           />
         ) : (
-          <div className="flex flex-col items-center justify-center text-blue/30 p-4 text-center">
+          <div className="flex flex-col items-center justify-center text-blue/30 p-4 text-center transition-transform duration-500 ease-out group-hover:scale-105">
             <BookOpen size={48} />
             <span className="text-xs font-semibold mt-2">Thư viện Dương Liễu</span>
           </div>
@@ -30,7 +30,7 @@ function FeaturedBookCard({ book }) {
       </a>
 
       {/* Thông tin sách nổi bật */}
-      <div className="flex-1 flex flex-col justify-between min-w-0 h-full">
+      <div className="flex-1 flex flex-col justify-between min-w-0 h-full py-5">
         <div>
           {/* Tên sách với Icon ngôi sao */}
           <div className="flex items-start gap-2.5">
@@ -62,7 +62,7 @@ function FeaturedBookCard({ book }) {
         </div>
 
         {/* Link tra cứu nếu có */}
-        {book.skoolib_url && (
+        {/* {book.skoolib_url && (
           <div className="mt-4 pt-2">
             <a
               href={book.skoolib_url}
@@ -74,7 +74,7 @@ function FeaturedBookCard({ book }) {
               <ExternalLink size={14} />
             </a>
           </div>
-        )}
+        )} */}
       </div>
     </div>
   );
@@ -90,16 +90,16 @@ function GridBookCard({ book }) {
         href={book.skoolib_url || '#'}
         target={book.skoolib_url ? '_blank' : undefined}
         rel="noopener noreferrer"
-        className="w-full aspect-[3/4] bg-white rounded-none overflow-hidden shadow-xs border border-black/5 flex items-center justify-center group-hover:shadow-md transition-all duration-200"
+        className="w-full aspect-[3/4] bg-white rounded-none overflow-hidden shadow-xs border border-black/5 flex items-center justify-center group-hover:shadow-md transition-all duration-300"
       >
         {book.cover_image ? (
           <img
             src={book.cover_image}
             alt={book.title}
-            className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-200"
+            className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-110"
           />
         ) : (
-          <div className="flex flex-col items-center justify-center text-blue/30 p-2 text-center">
+          <div className="flex flex-col items-center justify-center text-blue/30 p-2 text-center transition-transform duration-500 ease-out group-hover:scale-110">
             <BookOpen size={28} />
             <span className="text-[10px] font-semibold mt-1">TVDL</span>
           </div>
@@ -138,7 +138,7 @@ function QuoteSection({ quote }) {
   if (!quote?.content) return null;
 
   return (
-    <div className="w-full bg-white py-10 sm:py-14 px-6 sm:px-12 lg:px-16">
+    <div className="w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] bg-white py-6 sm:py-8 px-10 sm:px-28 shadow-xs">
       <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 sm:gap-12">
         {/* Tác giả câu nói (Màu vàng cam) */}
         {quote.author && (
@@ -175,14 +175,13 @@ function MonthSection({ monthData }) {
           <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-blue tracking-tight">
             {month_label}
           </h2>
-          <div className="h-[1px] bg-[#9CA3AF]/40 flex-1 ml-2" />
         </div>
       )}
 
-      {/* Khối chính 2 cột: Bên trái nền vàng kem (#FAF3DE), bên phải nền xám xanh (#F0F4F8) */}
-      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 items-stretch shadow-xs">
+      {/* Khối chính 2 cột: Bên trái là Sách nổi bật, bên phải là Grid 6 cuốn sách */}
+      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 items-stretch ">
         {/* Nửa trái: Sách nổi bật (Nền vàng kem nhạt) */}
-        <div className="bg-[#FAF3DE] p-6 sm:p-8 lg:p-12 flex flex-col justify-center">
+        <div className="bg-[#FAF3DE] px-6 py-5 sm:px-8 sm:py-6 lg:px-10 lg:py-6 flex flex-col justify-center">
           {featured_book ? (
             <FeaturedBookCard book={featured_book} />
           ) : (
@@ -193,7 +192,7 @@ function MonthSection({ monthData }) {
         </div>
 
         {/* Nửa phải: Grid 6 cuốn sách (Nền xám xanh nhạt) */}
-        <div className="bg-[#F0F4F8] p-6 sm:p-8 lg:p-12">
+        <div className="bg-[#F0F4F8] px-6 py-5 sm:px-8 sm:py-6 lg:px-10 lg:py-6">
           {displayGridBooks.length > 0 ? (
             <div className="grid grid-cols-3 gap-x-4 sm:gap-x-6 gap-y-6 sm:gap-y-8">
               {displayGridBooks.map((book) => (
@@ -272,112 +271,121 @@ export default function NewBooksPage() {
   }, [searchTerm, selectedCategoryId, selectedLocationId]);
 
   return (
-    <div className="min-h-[calc(100vh-64px)] bg-white">
+    <div className="min-h-[calc(100vh-64px)] flex flex-col bg-white overflow-x-clip">
       {/* Container Top: Tiêu đề & Thanh Tìm kiếm / Bộ lọc */}
-      <div className="px-10 pt-8 pb-8 sm:px-28 sm:pt-12 sm:pb-10">
+      <div className="px-10 pt-5 pb-4 sm:px-28 sm:pt-8 sm:pb-6">
         <div className="max-w-7xl mx-auto">
           {/* Tiêu đề trang */}
-          <div className="mb-6 sm:mb-8">
+          <div className="mb-5 sm:mb-6">
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-[#1B3F8B] tracking-tight">
               Sách mới, sách mới đây!
             </h1>
           </div>
 
-          {/* Thanh tìm kiếm và Bộ lọc (1 hàng 3 ô như trong ảnh) */}
+          {/* Thanh tìm kiếm và Bộ lọc (1 hàng 3 ô giữ nguyên layout ban đầu) */}
           <div className="grid grid-cols-1 md:grid-cols-12 gap-3 sm:gap-4">
-          {/* Ô Tìm kiếm (chiếm 6 cột) */}
-          <div className="md:col-span-6 relative flex items-center">
-            <Search size={18} className="absolute left-3.5 text-gray-500 pointer-events-none" />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Tìm kiếm sách theo tên sách, tác giả"
-              className="w-full h-11 pl-10 pr-9 bg-white border border-[#4B5563] text-sm text-[#2D2D2D] placeholder-gray-500 focus:outline-none focus:border-[#1B3F8B] transition-colors rounded-none"
-            />
-            {searchTerm && (
-              <button
-                type="button"
-                onClick={() => setSearchTerm('')}
-                className="absolute right-3 text-gray-400 hover:text-gray-600"
+            {/* Ô Tìm kiếm (chiếm 6 cột) */}
+            <div className="md:col-span-6 relative flex items-center">
+              <Search size={18} className="absolute left-3.5 text-gray-500 pointer-events-none" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Tìm kiếm sách theo tên sách, tác giả"
+                className="w-full h-11 pl-10 pr-9 bg-white border border-[#4B5563] text-sm text-[#2D2D2D] placeholder-gray-500 focus:outline-none focus:border-[#1B3F8B] transition-colors rounded-none"
+              />
+              {searchTerm && (
+                <button
+                  type="button"
+                  onClick={() => setSearchTerm('')}
+                  className="absolute right-3 text-gray-400 hover:text-gray-600"
+                >
+                  <X size={15} />
+                </button>
+              )}
+            </div>
+
+            {/* Ô Thể loại (chiếm 3 cột) */}
+            <div className="md:col-span-3 relative flex items-center">
+              <select
+                value={selectedCategoryId}
+                onChange={(e) => setSelectedCategoryId(e.target.value)}
+                className="w-full h-11 px-3.5 pr-8 bg-white border border-[#4B5563] text-sm text-[#2D2D2D] appearance-none focus:outline-none focus:border-[#1B3F8B] cursor-pointer rounded-none"
               >
-                <X size={15} />
-              </button>
-            )}
-          </div>
+                <option value="">Tất cả thể loại</option>
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown size={18} className="absolute right-3 text-[#4B5563] pointer-events-none" />
+            </div>
 
-          {/* Ô Thể loại (chiếm 3 cột) */}
-          <div className="md:col-span-3 relative flex items-center">
-            <select
-              value={selectedCategoryId}
-              onChange={(e) => setSelectedCategoryId(e.target.value)}
-              className="w-full h-11 px-3.5 pr-8 bg-white border border-[#4B5563] text-sm text-[#2D2D2D] appearance-none focus:outline-none focus:border-[#1B3F8B] cursor-pointer rounded-none"
-            >
-              <option value="">Tất cả thể loại</option>
-              {categories.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.name}
-                </option>
-              ))}
-            </select>
-            <ChevronDown size={18} className="absolute right-3 text-[#4B5563] pointer-events-none" />
-          </div>
-
-          {/* Ô Bộ lọc (chi nhánh / cơ sở) (chiếm 3 cột) */}
-          <div className="md:col-span-3 relative flex items-center">
-            <select
-              value={selectedLocationId}
-              onChange={(e) => setSelectedLocationId(e.target.value)}
-              className="w-full h-11 px-3.5 pr-8 bg-white border border-[#4B5563] text-sm text-[#2D2D2D] appearance-none focus:outline-none focus:border-[#1B3F8B] cursor-pointer rounded-none"
-            >
-              <option value="">Bộ lọc</option>
-              {locations.map((loc) => (
-                <option key={loc.id} value={loc.id}>
-                  Cơ sở: {loc.name}
-                </option>
-              ))}
-            </select>
-            <ChevronDown size={18} className="absolute right-3 text-[#4B5563] pointer-events-none" />
+            {/* Ô Bộ lọc (chi nhánh / cơ sở) (chiếm 3 cột) */}
+            <div className="md:col-span-3 relative flex items-center">
+              <select
+                value={selectedLocationId}
+                onChange={(e) => setSelectedLocationId(e.target.value)}
+                className="w-full h-11 px-3.5 pr-8 bg-white border border-[#4B5563] text-sm text-[#2D2D2D] appearance-none focus:outline-none focus:border-[#1B3F8B] cursor-pointer rounded-none"
+              >
+                <option value="">Bộ lọc</option>
+                {locations.map((loc) => (
+                  <option key={loc.id} value={loc.id}>
+                    Cơ sở: {loc.name}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown size={18} className="absolute right-3 text-[#4B5563] pointer-events-none" />
+            </div>
           </div>
         </div>
       </div>
-    </div>
 
-      {/* Danh sách các khối sách theo tháng */}
-      <div className="px-10 pb-12 sm:px-28 sm:pb-16">
-        {loading ? (
-          <div className="max-w-7xl mx-auto py-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 animate-pulse border border-gray-200">
-              <div className="bg-[#FAF3DE]/70 p-8 h-80 flex gap-6">
-                <div className="w-48 bg-gray-300/60 rounded" />
-                <div className="flex-1 space-y-4">
-                  <div className="h-6 bg-gray-300/60 rounded w-3/4" />
-                  <div className="h-4 bg-gray-300/60 rounded w-1/2" />
-                  <div className="h-24 bg-gray-300/40 rounded w-full" />
+      {/* Vùng hiển thị sách mới sau thanh tìm kiếm - có container chia 2 màu chạy dọc đến cuối trang */}
+      <div className="flex-1 relative flex flex-col">
+        {/* Nền chia 2 màu chạy từ đầu vùng này xuống đáy trang */}
+        <div className="absolute inset-0 grid grid-cols-1 lg:grid-cols-2 pointer-events-none -z-0">
+          <div className="bg-[#FAF3DE] w-full h-full" />
+          <div className="bg-[#F0F4F8] w-full h-full" />
+        </div>
+
+        {/* Nội dung danh sách sách mới với padding px-10 sm:px-28 */}
+        <div className="relative z-10 flex-1 px-10 pt-6 pb-8 sm:px-28 sm:pt-10 sm:pb-12">
+          {loading ? (
+            <div className="max-w-7xl mx-auto py-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 animate-pulse border border-gray-200">
+                <div className="bg-[#FAF3DE]/70 px-6 py-6 sm:px-8 sm:py-6 lg:px-10 lg:py-6 h-80 flex gap-6">
+                  <div className="w-48 bg-gray-300/60 rounded" />
+                  <div className="flex-1 space-y-4">
+                    <div className="h-6 bg-gray-300/60 rounded w-3/4" />
+                    <div className="h-4 bg-gray-300/60 rounded w-1/2" />
+                    <div className="h-24 bg-gray-300/40 rounded w-full" />
+                  </div>
+                </div>
+                <div className="bg-[#F0F4F8] px-6 py-6 sm:px-8 sm:py-6 lg:px-10 lg:py-6 grid grid-cols-3 gap-4">
+                  {[0, 1, 2, 3, 4, 5].map((i) => (
+                    <div key={i} className="aspect-[3/4] bg-gray-300/50 rounded" />
+                  ))}
                 </div>
               </div>
-              <div className="bg-[#F0F4F8] p-8 grid grid-cols-3 gap-4">
-                {[0, 1, 2, 3, 4, 5].map((i) => (
-                  <div key={i} className="aspect-[3/4] bg-gray-300/50 rounded" />
-                ))}
+            </div>
+          ) : monthSections.length === 0 ? (
+            <div className="max-w-7xl mx-auto py-12">
+              <div className="bg-white/80 backdrop-blur-xs border border-dashed border-gray-300 rounded-lg py-12 px-4 text-center">
+                <BookOpen size={48} className="mx-auto text-blue/30 mb-3" />
+                <p className="text-gray-700 text-base font-semibold">Không tìm thấy sách phù hợp</p>
+                <p className="text-gray-500 text-xs mt-1">Vui lòng thử tìm kiếm bằng từ khóa hoặc bộ lọc khác!</p>
               </div>
             </div>
-          </div>
-        ) : monthSections.length === 0 ? (
-          <div className="max-w-7xl mx-auto py-16">
-            <div className="bg-[#FAF3DE]/50 border border-dashed border-gray-300 rounded-lg py-16 px-4 text-center">
-              <BookOpen size={48} className="mx-auto text-blue/30 mb-3" />
-              <p className="text-gray-700 text-base font-semibold">Không tìm thấy sách phù hợp</p>
-              <p className="text-gray-500 text-xs mt-1">Vui lòng thử tìm kiếm bằng từ khóa hoặc bộ lọc khác!</p>
+          ) : (
+            <div className="max-w-7xl mx-auto space-y-8 sm:space-y-10">
+              {monthSections.map((m) => (
+                <MonthSection key={m.month_key} monthData={m} />
+              ))}
             </div>
-          </div>
-        ) : (
-          <div className="max-w-7xl mx-auto space-y-12 sm:space-y-16">
-            {monthSections.map((m) => (
-              <MonthSection key={m.month_key} monthData={m} />
-            ))}
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
