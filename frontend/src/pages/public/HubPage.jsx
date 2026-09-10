@@ -1,5 +1,7 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import logoSvg from '../../assets/logo_gradient.svg';
+import SearchModal from '../../components/search/SearchModal';
 
 const MENUS = [
   {
@@ -42,6 +44,20 @@ function SearchIcon({ className }) {
 }
 
 export default function HubPage() {
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+
+  // Global Ctrl+K / Cmd+K listener
+  useEffect(() => {
+    function handleGlobalKeyDown(e) {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setIsSearchOpen(true);
+      }
+    }
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col">
       {/* Hero */}
@@ -71,17 +87,19 @@ export default function HubPage() {
           ))}
         </div>
 
-        {/* Search row — tra cứu trực tiếp trên Skoolib */}
-        <a
-          href="https://skoolib.net/li/tvdlcs1/opac-public"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="h-20 text-base font-semibold  sm:text-xl flex items-center justify-center bg-dark duration-200 hover:opacity-80 text-white"
+        {/* Search row — Mở hộp thoại tìm kiếm toàn bộ website */}
+        <button
+          type="button"
+          onClick={() => setIsSearchOpen(true)}
+          className="w-full h-20 text-base font-semibold sm:text-xl flex items-center justify-center bg-dark duration-200 hover:opacity-80 text-white cursor-pointer"
         >
           <SearchIcon className="text-white h-3.5 mr-2 sm:mr-5 w-auto" />
           TÌM KIẾM
-        </a>
+        </button>
       </div>
+
+      {/* Search Modal */}
+      <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
     </div>
   );
 }

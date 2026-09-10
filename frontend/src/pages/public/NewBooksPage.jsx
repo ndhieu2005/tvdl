@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Search, ChevronDown, Star, User, BookOpen, ExternalLink, X } from 'lucide-react';
 import { api } from '../../lib/api';
 
@@ -219,10 +220,19 @@ export default function NewBooksPage() {
   const [locations, setLocations] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const [searchParams] = useSearchParams();
+  const urlQuery = searchParams.get('q') || '';
+
   // Filter & Search states
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(urlQuery);
   const [selectedCategoryId, setSelectedCategoryId] = useState('');
   const [selectedLocationId, setSelectedLocationId] = useState('');
+
+  useEffect(() => {
+    if (urlQuery) {
+      setSearchTerm(urlQuery);
+    }
+  }, [urlQuery]);
 
   // Fetch dữ liệu categories và locations
   useEffect(() => {

@@ -9,5 +9,6 @@ router.use('/age-groups', require('./ageGroups'));
 router.use('/categories', require('./categories'));
 router.use('/posts', require('./posts'));
 router.use('/locations', require('./locations'));
+router.use('/search', require('./search'));
 
 module.exports = router;

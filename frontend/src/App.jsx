@@ -14,6 +14,7 @@ import ContactPage from './pages/public/ContactPage';
 import SuggestionPage from './pages/public/SuggestionPage';
 import PostsPage from './pages/public/PostsPage';
 import PostDetailPage from './pages/public/PostDetailPage';
+import SearchPage from './pages/public/SearchPage';
 
 import LoginPage from './pages/admin/LoginPage';
 import AdminNewBooksPage from './pages/admin/AdminNewBooksPage';
@@ -47,6 +48,7 @@ export default function App() {
           <Route path="/services" element={<ServicesPage />} />
           <Route path="/news" element={<PostsPage />} />
           <Route path="/news/:slug" element={<PostDetailPage />} />
+          <Route path="/search" element={<SearchPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/suggest" element={<SuggestionPage />} />
         </Route>

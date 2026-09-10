@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import logoSvg from '../../assets/logo_gradient.svg';
+import SearchModal, { SKOOLIB_URL } from '../search/SearchModal';
 
-export const SKOOLIB_URL = 'https://skoolib.net/li/tvdlcs1/opac-public';
+export { SKOOLIB_URL };
 
 const SERVICES_SUBMENU = [
   { text: 'Sách mới', to: '/new-books' },
@@ -41,8 +42,21 @@ function SearchIcon({ className }) {
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isServicesOpen, setIsServicesOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const { pathname } = useLocation();
   const isActive = (to) => (to === '/' ? pathname === '/' : pathname.startsWith(to));
+
+  // Global Ctrl+K / Cmd+K listener to open search modal
+  useEffect(() => {
+    function handleGlobalKeyDown(e) {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setIsSearchOpen(true);
+      }
+    }
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, []);
 
   return (
     <header className="w-full z-50 sticky top-0 bg-light-blue sm:bg-transparent">
@@ -105,15 +119,16 @@ export default function Navbar() {
           </li>
         </ul>
 
-        {/* Search — tra cứu trực tiếp trên Skoolib */}
-        <a
-          href={SKOOLIB_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="w-28 hidden sm:flex items-center justify-center bg-dark duration-200 hover:opacity-80"
+        {/* Search — mở hộp thoại tìm kiếm toàn trang */}
+        <button
+          type="button"
+          onClick={() => setIsSearchOpen(true)}
+          aria-label="Tìm kiếm trên website"
+          title="Tìm kiếm (Ctrl+K)"
+          className="w-28 hidden sm:flex items-center justify-center bg-dark duration-200 hover:opacity-80 cursor-pointer"
         >
           <SearchIcon className="text-white max-h-5 w-auto" />
-        </a>
+        </button>
 
         {/* Social icons */}
         <div className="flex items-center justify-center gap-3 sm:gap-4 bg-light-blue w-36 sm:w-48 shrink-0">
@@ -152,11 +167,19 @@ export default function Navbar() {
           </a>
         </div>
 
-        {/* Mobile hamburger */}
-        <div className="flex sm:hidden items-center justify-end flex-1 pr-5">
+        {/* Mobile search & hamburger */}
+        <div className="flex sm:hidden items-center justify-end flex-1 pr-3 gap-1">
+          <button
+            type="button"
+            onClick={() => setIsSearchOpen(true)}
+            aria-label="Tìm kiếm"
+            className="text-blue p-2 hover:opacity-80"
+          >
+            <SearchIcon className="h-5 w-5" />
+          </button>
           <button
             onClick={() => setIsMenuOpen((prev) => !prev)}
-            className="text-blue min-h-6 min-w-6"
+            className="text-blue min-h-6 min-w-6 p-1"
           >
             {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
@@ -165,7 +188,18 @@ export default function Navbar() {
 
       {/* Mobile dropdown */}
       {isMenuOpen && (
-        <div className="sm:hidden border-b border-[#c9d7ec]">
+        <div className="sm:hidden border-b border-[#c9d7ec] bg-light-blue">
+          <button
+            type="button"
+            onClick={() => {
+              setIsMenuOpen(false);
+              setIsSearchOpen(true);
+            }}
+            className="w-full text-left text-blue border-t border-[#c9d7ec] px-3 py-2 text-sm flex items-center gap-2 font-medium"
+          >
+            <SearchIcon className="h-4 w-4" />
+            <span>Tìm kiếm trên website...</span>
+          </button>
           {MOBILE_NAV.map((item) => (
             item.href ? (
               <a
@@ -194,6 +228,9 @@ export default function Navbar() {
           ))}
         </div>
       )}
+
+      {/* Global Search Modal */}
+      <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
     </header>
   );
 }
