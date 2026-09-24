@@ -50,9 +50,33 @@ export default function SuggestionsPage() {
                         {s.reader_code && s.reader_name && ` (${s.reader_code})`}
                         {s.email && ` · ${s.email}`}
                       </p>
-                      {s.category && (
-                        <p className="text-xs text-yellow font-medium mt-1">{s.age_group?.name} · {s.category?.name}</p>
-                      )}
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1.5 text-xs">
+                        {s.buy_link && (
+                          <a
+                            href={s.buy_link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue underline hover:opacity-80 inline-flex items-center gap-1 font-medium"
+                          >
+                            Link mua sách ↗
+                          </a>
+                        )}
+                        {s.info_link && (
+                          <a
+                            href={s.info_link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue underline hover:opacity-80 inline-flex items-center gap-1 font-medium"
+                          >
+                            Link thông tin sách ↗
+                          </a>
+                        )}
+                        {s.category && (
+                          <span className="text-yellow font-medium">
+                            {s.age_group?.name ? `${s.age_group.name} · ` : ''}{s.category.name}
+                          </span>
+                        )}
+                      </div>
                       {s.description && (
                         <p className="text-xs text-dark mt-2 leading-relaxed">{s.description}</p>
                       )}

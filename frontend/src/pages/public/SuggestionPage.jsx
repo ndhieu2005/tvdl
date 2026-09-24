@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { api } from '../../lib/api';
 
 const STORAGE_KEY = 'tvdl_suggestion_submitted';
@@ -11,14 +11,6 @@ function CheckIcon({ className }) {
   );
 }
 
-function ChevronDownIcon({ className }) {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-      <polyline points="6 9 12 15 18 9" />
-    </svg>
-  );
-}
-
 export default function SuggestionPage() {
   const [alreadySubmitted, setAlreadySubmitted] = useState(
     () => !!localStorage.getItem(STORAGE_KEY)
@@ -27,23 +19,15 @@ export default function SuggestionPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const [ageGroups, setAgeGroups] = useState([]);
-  const [categories, setCategories] = useState([]);
-
   const [form, setForm] = useState({
     reader_name: '',
     reader_code: '',
     email: '',
     book_name: '',
-    age_group_id: '',
-    category_id: '',
+    buy_link: '',
+    info_link: '',
     description: '',
   });
-
-  useEffect(() => {
-    api.get('/age-groups').then((r) => setAgeGroups(r.data.data || [])).catch(() => {});
-    api.get('/categories').then((r) => setCategories(r.data.data || [])).catch(() => {});
-  }, []);
 
   function handleChange(e) {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -64,8 +48,8 @@ export default function SuggestionPage() {
         reader_code: form.reader_code.trim() || undefined,
         email: form.email.trim() || undefined,
         book_name: form.book_name.trim(),
-        age_group_id: form.age_group_id || undefined,
-        category_id: form.category_id || undefined,
+        buy_link: form.buy_link.trim() || undefined,
+        info_link: form.info_link.trim() || undefined,
         description: form.description.trim() || undefined,
       });
       localStorage.setItem(STORAGE_KEY, '1');
@@ -82,7 +66,15 @@ export default function SuggestionPage() {
     localStorage.removeItem(STORAGE_KEY);
     setAlreadySubmitted(false);
     setSubmitted(false);
-    setForm({ reader_name: '', reader_code: '', email: '', book_name: '', age_group_id: '', category_id: '', description: '' });
+    setForm({
+      reader_name: '',
+      reader_code: '',
+      email: '',
+      book_name: '',
+      buy_link: '',
+      info_link: '',
+      description: '',
+    });
     setError('');
   }
 
@@ -198,49 +190,37 @@ export default function SuggestionPage() {
             </div>
           </div>
 
-          {/* Age group */}
+          {/* Buy link */}
           <div className="grid grid-cols-1 sm:grid-cols-[200px_1fr] md:grid-cols-[240px_1fr] items-center gap-2 sm:gap-6">
             <label className="text-sm sm:text-base text-[#333333] font-medium">
-              Độ tuổi:
+              Link mua sách:
             </label>
-            <div className="relative">
-              <select
-                name="age_group_id"
-                value={form.age_group_id}
+            <div>
+              <input
+                type="url"
+                name="buy_link"
+                value={form.buy_link}
                 onChange={handleChange}
-                className="w-full border border-gray-400 bg-transparent py-2.5 px-4 pr-10 text-sm sm:text-base text-gray-700 focus:outline-none focus:border-blue transition-colors appearance-none cursor-pointer"
-              >
-                <option value="">Chọn độ tuổi</option>
-                {ageGroups.map((g) => (
-                  <option key={g.id} value={g.id}>{g.name}</option>
-                ))}
-              </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
-                <ChevronDownIcon className="w-4 h-4" />
-              </div>
+                placeholder="https://... (Tiki, Shopee, Fahasa, ...)"
+                className="w-full border-b border-gray-400 bg-transparent py-1.5 text-sm sm:text-base text-[#2B2B2B] placeholder:text-gray-400 focus:outline-none focus:border-blue transition-colors"
+              />
             </div>
           </div>
 
-          {/* Category */}
+          {/* Info link */}
           <div className="grid grid-cols-1 sm:grid-cols-[200px_1fr] md:grid-cols-[240px_1fr] items-center gap-2 sm:gap-6">
             <label className="text-sm sm:text-base text-[#333333] font-medium">
-              Thể loại:
+              Link thông tin sách:
             </label>
-            <div className="relative">
-              <select
-                name="category_id"
-                value={form.category_id}
+            <div>
+              <input
+                type="url"
+                name="info_link"
+                value={form.info_link}
                 onChange={handleChange}
-                className="w-full border border-gray-400 bg-transparent py-2.5 px-4 pr-10 text-sm sm:text-base text-gray-700 focus:outline-none focus:border-blue transition-colors appearance-none cursor-pointer"
-              >
-                <option value="">Chọn thể loại</option>
-                {categories.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
-                <ChevronDownIcon className="w-4 h-4" />
-              </div>
+                placeholder="https://... (Goodreads, bài viết giới thiệu, ...)"
+                className="w-full border-b border-gray-400 bg-transparent py-1.5 text-sm sm:text-base text-[#2B2B2B] placeholder:text-gray-400 focus:outline-none focus:border-blue transition-colors"
+              />
             </div>
           </div>
 

@@ -5,7 +5,7 @@ const { success, error } = require('../../utils/response');
 // POST /api/v1/suggestions
 router.post('/', async (req, res, next) => {
   try {
-    const { reader_name, reader_code, email, book_name, category_id, age_group_id, description } = req.body;
+    const { reader_name, reader_code, email, book_name, buy_link, info_link, description } = req.body;
 
     if (!book_name || !book_name.trim())
       return error(res, 'Vui lòng nhập tên sách đề xuất', 'VALIDATION_ERROR', 400);
@@ -16,8 +16,8 @@ router.post('/', async (req, res, next) => {
         reader_code: reader_code ? reader_code.trim() : null,
         email: email ? email.trim() : null,
         book_name: book_name.trim(),
-        category_id: category_id ? parseInt(category_id) : null,
-        age_group_id: age_group_id ? parseInt(age_group_id) : null,
+        buy_link: buy_link ? buy_link.trim() : null,
+        info_link: info_link ? info_link.trim() : null,
         description: description ? description.trim() : null,
       },
     });

@@ -69,21 +69,6 @@ export default function ContactPage() {
             <p className="text-sm font-light">{text}</p>
           </div>
         ))}
-
-        <div className="flex items-start gap-4 mt-3">
-          <MessageIcon className="w-3 pt-1.5 shrink-0" />
-          <p className="text-sm font-light">
-            Thông tin chung:
-            <a
-              href="https://linktr.ee/duonglieu"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-medium ml-1"
-            >
-              linktr.ee/duonglieu
-            </a>
-          </p>
-        </div>
       </div>
 
       {/* Right: contact form */}
@@ -99,22 +84,22 @@ export default function ContactPage() {
 
           <div className="flex flex-col md:flex-row gap-6 sm:gap-16">
             <div className="flex-1">
-              <label htmlFor="email" className="text-xs font-extralight">Địa chỉ email:</label>
+              <label htmlFor="email" className="text-xs font-light">Địa chỉ email:</label>
               <input id="email" name="email" type="email" className={inputClass} />
             </div>
             <div className="flex-1">
-              <label htmlFor="phone" className="text-xs font-extralight">Số điện thoại:</label>
+              <label htmlFor="phone" className="text-xs font-light">Số điện thoại:</label>
               <input id="phone" name="phone" type="tel" className={inputClass} />
             </div>
           </div>
 
           <div>
-            <label htmlFor="subject" className="text-xs font-extralight">Tiêu đề:</label>
+            <label htmlFor="subject" className="text-xs font-light">Tiêu đề:</label>
             <input id="subject" name="subject" type="text" className={inputClass} />
           </div>
 
           <div>
-            <label htmlFor="message" className="text-xs font-extralight">Lời nhắn:</label>
+            <label htmlFor="message" className="text-xs font-light">Lời nhắn:</label>
             <textarea
               id="message"
               name="message"
@@ -125,7 +110,7 @@ export default function ContactPage() {
 
           <button
             type="submit"
-            className="w-full text-sm sm:text-base border-2 border-yellow bg-yellow hover:bg-blue font-extralight px-10 py-3 rounded-full duration-200"
+            className="w-full text-sm sm:text-base border-2 border-yellow bg-yellow hover:bg-blue font-normal px-10 py-3 rounded-full duration-200"
           >
             GỬI TIN NHẮN
           </button>

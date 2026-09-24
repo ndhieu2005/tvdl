@@ -21,6 +21,8 @@ router.get('/', async (req, res, next) => {
           reader_code: true,
           email: true,
           book_name: true,
+          buy_link: true,
+          info_link: true,
           description: true,
           created_at: true,
           category: { select: { id: true, name: true } },

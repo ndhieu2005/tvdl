@@ -105,6 +105,8 @@ model Book_Suggestions {
   reader_code  String?     @db.VarChar(50)
   email        String?     @db.VarChar(255)
   book_name    String?     @db.VarChar(255)
+  buy_link     String?     @db.Text
+  info_link    String?     @db.Text
   category_id  Int?
   age_group_id Int?
   description  String?     @db.Text
