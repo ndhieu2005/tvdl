@@ -26,6 +26,12 @@ const EMPTY_TEMPLATE_FORM = {
   location_id: '', custom_location_name: '',
 };
 
+const EMPTY_GENERATE_FORM = {
+  mode: 'from_today', // 'from_today' | 'full_year' | 'custom'
+  from: '',
+  to: '',
+};
+
 // "08:00-11:00" ⇄ 2 ô time
 function splitTimeFrame(tf) {
   const m = /^(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})$/.exec(tf || '');
@@ -92,11 +98,12 @@ export default function AdminSchedulesPage() {
   const [saving, setSaving] = useState(false);
   const [generating, setGenerating] = useState(false);
 
-  // modal: null | {type:'schedule-create'|'schedule-edit'|'template-create'|'template-edit', id?}
+  // modal: null | {type:'schedule-create'|'schedule-edit'|'template-create'|'template-edit'|'generate', id?}
   const [modal, setModal] = useState(null);
   const [form, setForm] = useState(EMPTY_SCHEDULE_FORM);
   const [tplForm, setTplForm] = useState(EMPTY_TEMPLATE_FORM);
-  const [formErrors, setFormErrors] = useState({}); // lỗi validate inline cho cả 2 modal
+  const [genForm, setGenForm] = useState(EMPTY_GENERATE_FORM);
+  const [formErrors, setFormErrors] = useState({}); // lỗi validate inline cho các modal
 
   function fetchSchedules() {
     setLoading(true);
@@ -276,16 +283,51 @@ export default function AdminSchedulesPage() {
     }
   }
 
-  async function generateToYearEnd() {
+  function openGenerateModal() {
     const today = new Date();
-    const from = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-    const to = `${today.getFullYear()}-12-31`;
-    if (!(await confirm(`Sinh lịch từ hôm nay đến 31/12/${today.getFullYear()} theo ${templates.length} lịch chuẩn?`))) return;
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    const yearStartStr = `${year}-01-01`;
+    const yearEndStr = `${year}-12-31`;
+    setGenForm({
+      mode: 'from_today',
+      from: todayStr,
+      to: yearEndStr,
+    });
+    setFormErrors({});
+    setModal({ type: 'generate' });
+  }
+
+  async function handleGenerate() {
+    const today = new Date();
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    let from = '';
+    let to = '';
+
+    if (genForm.mode === 'from_today') {
+      from = todayStr;
+      to = `${year}-12-31`;
+    } else if (genForm.mode === 'full_year') {
+      from = `${year}-01-01`;
+      to = `${year}-12-31`;
+    } else {
+      const errs = {};
+      if (!genForm.from) errs.from = 'Chọn ngày bắt đầu';
+      if (!genForm.to) errs.to = 'Chọn ngày kết thúc';
+      if (genForm.from && genForm.to && genForm.from > genForm.to) {
+        errs.to = 'Ngày kết thúc phải sau hoặc bằng ngày bắt đầu';
+      }
+      setFormErrors(errs);
+      if (Object.keys(errs).length > 0) return;
+      from = genForm.from;
+      to = genForm.to;
+    }
+
     setGenerating(true);
     try {
       const r = await adminApi.post('/schedules/generate', { from, to });
       const { created, skipped } = r.data.data;
       toast.success(`Đã tạo ${created} lịch, bỏ qua ${skipped} lịch trùng`);
+      setModal(null);
       fetchSchedules();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Sinh lịch thất bại');
@@ -367,11 +409,11 @@ export default function AdminSchedulesPage() {
               <Plus size={15} /> Thêm ca chuẩn
             </button>
             <button
-              onClick={generateToYearEnd}
-              disabled={templates.length === 0 || generating}
+              onClick={openGenerateModal}
+              disabled={templates.length === 0}
               className="flex items-center gap-2 bg-yellow text-blue px-4 py-2 rounded-lg text-sm font-bold hover:bg-yellow-dark transition-colors disabled:opacity-50"
             >
-              <CalendarRange size={15} /> {generating ? 'Đang sinh lịch...' : 'Sinh lịch đến cuối năm'}
+              <CalendarRange size={15} /> Sinh lịch tự động
             </button>
           </div>
         </div>
@@ -531,6 +573,119 @@ export default function AdminSchedulesPage() {
             <button onClick={() => setModal(null)} className="px-4 py-2 text-sm text-muted hover:text-blue">Huỷ</button>
             <button onClick={saveTemplate} disabled={saving} className="flex items-center gap-2 bg-blue text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-blue-light disabled:opacity-50">
               <Check size={15} /> {saving ? 'Đang lưu...' : 'Lưu'}
+            </button>
+          </div>
+        </Modal>
+      )}
+
+      {/* ===== Generate Schedule modal ===== */}
+      {modal?.type === 'generate' && (
+        <Modal title="Sinh lịch tự động từ lịch chuẩn" onClose={() => setModal(null)}>
+          <div className="space-y-4">
+            <p className="text-xs text-muted leading-relaxed">
+              Hệ thống sẽ dựa vào <span className="font-semibold text-blue">{templates.length} ca chuẩn</span> hàng tuần để tự động tạo lịch hoạt động. Các ca đã tồn tại sẽ được tự động bỏ qua để tránh trùng lặp.
+            </p>
+
+            <div className="space-y-2">
+              <label
+                className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                  genForm.mode === 'from_today'
+                    ? 'border-blue bg-blue/5'
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="gen_mode"
+                  value="from_today"
+                  checked={genForm.mode === 'from_today'}
+                  onChange={() => setGenForm({ ...genForm, mode: 'from_today' })}
+                  className="accent-blue mt-0.5"
+                />
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-blue">Từ hôm nay đến cuối năm {year}</p>
+                  <p className="text-xs text-muted">Chỉ sinh lịch cho các ngày từ hôm nay trở đi (bỏ qua các ngày trước đó)</p>
+                </div>
+              </label>
+
+              <label
+                className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                  genForm.mode === 'full_year'
+                    ? 'border-blue bg-blue/5'
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="gen_mode"
+                  value="full_year"
+                  checked={genForm.mode === 'full_year'}
+                  onChange={() => setGenForm({ ...genForm, mode: 'full_year' })}
+                  className="accent-blue mt-0.5"
+                />
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-blue">Cả năm {year} (sinh lịch từ trước / từ đầu năm)</p>
+                  <p className="text-xs text-muted">Sinh lịch cho toàn bộ năm {year} từ 01/01/{year} đến 31/12/{year}</p>
+                </div>
+              </label>
+
+              <label
+                className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                  genForm.mode === 'custom'
+                    ? 'border-blue bg-blue/5'
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="gen_mode"
+                  value="custom"
+                  checked={genForm.mode === 'custom'}
+                  onChange={() => setGenForm({ ...genForm, mode: 'custom' })}
+                  className="accent-blue mt-0.5"
+                />
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-blue">Tùy chọn khoảng ngày</p>
+                  <p className="text-xs text-muted">Tự chọn ngày bắt đầu và ngày kết thúc cụ thể</p>
+                </div>
+              </label>
+            </div>
+
+            {genForm.mode === 'custom' && (
+              <div className="grid grid-cols-2 gap-3 pt-2">
+                <FormField label="Từ ngày" required error={formErrors.from}>
+                  <TextInput
+                    type="date"
+                    value={genForm.from}
+                    onChange={(e) => setGenForm({ ...genForm, from: e.target.value })}
+                  />
+                </FormField>
+                <FormField label="Đến ngày" required error={formErrors.to}>
+                  <TextInput
+                    type="date"
+                    value={genForm.to}
+                    onChange={(e) => setGenForm({ ...genForm, to: e.target.value })}
+                  />
+                </FormField>
+              </div>
+            )}
+          </div>
+
+          <div className="flex justify-end gap-3 mt-6">
+            <button
+              type="button"
+              onClick={() => setModal(null)}
+              className="px-4 py-2 text-sm text-muted hover:text-blue"
+            >
+              Huỷ
+            </button>
+            <button
+              type="button"
+              onClick={handleGenerate}
+              disabled={generating}
+              className="flex items-center gap-2 bg-yellow text-blue px-5 py-2 rounded-lg text-sm font-bold hover:bg-yellow-dark transition-colors disabled:opacity-50"
+            >
+              <CalendarRange size={15} /> {generating ? 'Đang sinh lịch...' : 'Bắt đầu sinh lịch'}
             </button>
           </div>
         </Modal>

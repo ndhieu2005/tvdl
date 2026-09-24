@@ -13,11 +13,58 @@ const MONTH_NAMES = [
 ];
 const WEEKDAY_LABELS = ['THỨ 2', 'THỨ 3', 'THỨ 4', 'THỨ 5', 'THỨ 6', 'THỨ 7', 'CHỦ NHẬT'];
 const SHIFT_LABELS = { morning: 'Ca sáng', afternoon: 'Ca chiều', evening: 'Ca tối' };
+const SHIFT_ORDER = { morning: 1, afternoon: 2, evening: 3 };
 
 // "Cơ sở 1 — 18/56 Đường Thống Nhất..." hoặc tên địa điểm tự nhập
 function formatLocation(loc, customName) {
   if (!loc) return customName || '';
   return loc.address ? `${loc.name} — ${loc.address}` : loc.name;
+}
+
+function groupSchedulesByLocation(scheduleList) {
+  const groups = [];
+  const map = new Map();
+
+  scheduleList.forEach((s) => {
+    const dateKey = s.date ? (typeof s.date === 'string' ? s.date.slice(0, 10) : new Date(s.date).toISOString().slice(0, 10)) : '';
+    const locKey = s.location?.id ? `loc_${s.location.id}` : `custom_${s.custom_location_name || ''}`;
+    const key = `${dateKey}_${locKey}`;
+
+    if (!map.has(key)) {
+      const group = {
+        key,
+        date: s.date,
+        location: s.location,
+        custom_location_name: s.custom_location_name,
+        color_code: s.location?.color_code || '#1B3F8B',
+        shifts: [],
+      };
+      map.set(key, group);
+      groups.push(group);
+    }
+    map.get(key).shifts.push(s);
+  });
+
+  groups.forEach((g) => {
+    g.shifts.sort((a, b) => (SHIFT_ORDER[a.shift] || 99) - (SHIFT_ORDER[b.shift] || 99));
+  });
+
+  return groups;
+}
+
+function getUniqueLocationBadges(daySchedules) {
+  const map = new Map();
+  daySchedules.forEach((s) => {
+    const locKey = s.location?.id ? `loc_${s.location.id}` : `custom_${s.custom_location_name || ''}`;
+    if (!map.has(locKey)) {
+      map.set(locKey, {
+        id: s.id,
+        name: s.location?.name || s.custom_location_name || 'Thư viện',
+        color_code: s.location?.color_code || '#1B3F8B',
+      });
+    }
+  });
+  return Array.from(map.values());
 }
 
 const TODAY = new Date();
@@ -137,6 +184,11 @@ export default function SchedulePage() {
 
   const displaySchedules = selectedDate ? selectedDaySchedules : schedules;
 
+  const groupedDisplaySchedules = useMemo(
+    () => groupSchedulesByLocation(displaySchedules),
+    [displaySchedules]
+  );
+
   const displayEvents = useMemo(() => {
     if (!selectedDate) return events;
     const day = parseInt(selectedDate.split('-')[2], 10);
@@ -232,13 +284,13 @@ export default function SchedulePage() {
                               {day}
                             </div>
                             <div className="space-y-1">
-                              {daySchedules.map((s) => (
+                              {getUniqueLocationBadges(daySchedules).map((loc) => (
                                 <div
-                                  key={s.id}
+                                  key={loc.id}
                                   className="text-[7px] sm:text-[9px] leading-tight px-0.5 sm:px-1 py-0.5 rounded truncate text-white font-medium"
-                                  style={{ backgroundColor: s.location?.color_code || '#1B3F8B' }}
+                                  style={{ backgroundColor: loc.color_code }}
                                 >
-                                  Mở cửa {s.location?.name || s.custom_location_name}
+                                  Mở cửa {loc.name}
                                 </div>
                               ))}
                               {dayEvents.map((ev) => (
@@ -257,13 +309,20 @@ export default function SchedulePage() {
                             {/* Tooltip chi tiết khi hover (desktop) */}
                             {(daySchedules.length > 0 || dayEvents.length > 0) && (
                               <div className="hidden group-hover:block absolute z-20 top-full left-1/2 -translate-x-1/2 mt-1 w-max max-w-[240px] bg-white border border-[#424241] rounded p-2.5 text-left shadow-lg pointer-events-none">
-                                {daySchedules.map((s) => (
-                                  <div key={s.id} className="text-[11px] leading-snug text-[#2B2B2B] py-0.5">
-                                    <span className="font-bold text-blue">{s.time_frame} ({SHIFT_LABELS[s.shift] || s.shift})</span>
-                                    {' · '}{formatLocation(s.location, s.custom_location_name)}
-                                    {s.is_sudden_closed && <span className="text-red-500 font-medium"> — đóng đột xuất</span>}
-                                  </div>
-                                ))}
+                                {groupSchedulesByLocation(daySchedules).map((g) => {
+                                  const locStr = formatLocation(g.location, g.custom_location_name);
+                                  return (
+                                    <div key={g.key} className="text-[11px] leading-snug text-[#2B2B2B] py-0.5">
+                                      <span className="font-bold text-blue">
+                                        {g.shifts.map((s) => `${s.time_frame} (${SHIFT_LABELS[s.shift] || s.shift})`).join(', ')}
+                                      </span>
+                                      {locStr && <> · {locStr}</>}
+                                      {g.shifts.some((s) => s.is_sudden_closed) && (
+                                        <span className="text-red-500 font-medium"> — đóng đột xuất</span>
+                                      )}
+                                    </div>
+                                  );
+                                })}
                                 {dayEvents.map((ev) => (
                                   <div key={`ev-${ev.id}`} className="text-[11px] leading-snug text-[#2B2B2B] py-0.5">
                                     {ev.is_featured && <span className="text-yellow-dark">★ </span>}
@@ -347,30 +406,60 @@ export default function SchedulePage() {
                     </div>
                   );
                 })}
-                {!loading && displaySchedules.map((s) => {
-                  const locStr = formatLocation(s.location, s.custom_location_name);
+                {!loading && groupedDisplaySchedules.map((g) => {
+                  const locStr = formatLocation(g.location, g.custom_location_name);
+                  const isMultiShift = g.shifts.length > 1;
+                  const allSuddenClosed = g.shifts.every((s) => s.is_sudden_closed);
+                  const titleShifts = isMultiShift
+                    ? g.shifts.map((s) => SHIFT_LABELS[s.shift] || s.shift).join(', ')
+                    : (SHIFT_LABELS[g.shifts[0].shift] || g.shifts[0].shift);
+
                   return (
                     <div
-                      key={s.id}
+                      key={g.key}
                       className="pl-4 transition-all"
                       style={{
                         borderLeftWidth: '6px',
-                        borderLeftColor: s.location?.color_code || '#1B3F8B',
+                        borderLeftColor: g.color_code,
                       }}
                     >
                       <h4 className="font-bold text-blue mb-1.5 flex items-center gap-1.5 flex-wrap">
-                        Mở cửa — {SHIFT_LABELS[s.shift] || s.shift}
-                        {s.is_sudden_closed && (
+                        Mở cửa — {titleShifts}
+                        {allSuddenClosed && (
                           <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide bg-red-100 text-red-600 px-1.5 py-0.5 rounded">
                             Đóng đột xuất
                           </span>
                         )}
                       </h4>
-                      <div className="space-y-1 text-xs sm:text-sm text-[#3F3F3F] font-normal">
-                        <div className="flex items-center gap-1.5">
-                          <Clock size={14} className="text-[#9CA3AF] shrink-0" />
-                          <span>{s.time_frame}</span>
-                        </div>
+                      <div className="space-y-1.5 text-xs sm:text-sm text-[#3F3F3F] font-normal">
+                        {isMultiShift ? (
+                          <div className="space-y-1">
+                            {g.shifts.map((s) => (
+                              <div key={s.id} className="flex items-start gap-1.5 flex-wrap">
+                                <Clock size={14} className="text-[#9CA3AF] shrink-0 mt-0.5" />
+                                <span className="font-semibold text-blue">{SHIFT_LABELS[s.shift] || s.shift}:</span>
+                                <span>{s.time_frame}</span>
+                                {s.is_sudden_closed && (
+                                  <span className="text-xs text-red-500 font-medium ml-1">
+                                    (⚠ Đóng đột xuất{s.closed_reason ? `: ${s.closed_reason}` : ''})
+                                  </span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <>
+                            <div className="flex items-center gap-1.5">
+                              <Clock size={14} className="text-[#9CA3AF] shrink-0" />
+                              <span>{g.shifts[0].time_frame}</span>
+                            </div>
+                            {g.shifts[0].is_sudden_closed && (
+                              <p className="text-xs text-red-500 font-medium mt-1">
+                                ⚠ {g.shifts[0].closed_reason || 'Đột xuất đóng cửa'}
+                              </p>
+                            )}
+                          </>
+                        )}
                         {locStr && (
                           <div className="flex items-start gap-1.5">
                             <MapPin size={14} className="text-[#9CA3AF] shrink-0 mt-0.5" />
@@ -378,11 +467,6 @@ export default function SchedulePage() {
                           </div>
                         )}
                       </div>
-                      {s.is_sudden_closed && (
-                        <p className="text-xs text-red-500 font-medium mt-1.5">
-                          ⚠ {s.closed_reason || 'Đột xuất đóng cửa'}
-                        </p>
-                      )}
                     </div>
                   );
                 })}
