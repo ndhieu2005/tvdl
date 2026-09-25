@@ -24,31 +24,70 @@ async function main() {
   });
 
   // Age_Groups
-  await prisma.age_Groups.createMany({
-    data: [
-      { name: "Thiếu nhi" },
-      { name: "Thanh thiếu niên" },
-      { name: "Người lớn" },
-    ],
-    skipDuplicates: true,
-  });
+  const ageGroupNames = [
+    "Nhóm 0-6 tuổi",
+    "Nhóm 7-12 tuổi",
+    "Nhóm 13-19 tuổi",
+    "Nhóm 19 tuổi trở lên",
+  ];
+
+  for (const name of ageGroupNames) {
+    await prisma.age_Groups.upsert({
+      where: { name },
+      update: {},
+      create: { name },
+    });
+  }
 
   // Categories (cần age_group_id)
-  const [thieu_nhi, thanh_thieu_nien, nguoi_lon] = await Promise.all([
-    prisma.age_Groups.findUnique({ where: { name: "Thiếu nhi" } }),
-    prisma.age_Groups.findUnique({ where: { name: "Thanh thiếu niên" } }),
-    prisma.age_Groups.findUnique({ where: { name: "Người lớn" } }),
+  const [group06, group712, group1319, group19plus] = await Promise.all([
+    prisma.age_Groups.findUnique({ where: { name: "Nhóm 0-6 tuổi" } }),
+    prisma.age_Groups.findUnique({ where: { name: "Nhóm 7-12 tuổi" } }),
+    prisma.age_Groups.findUnique({ where: { name: "Nhóm 13-19 tuổi" } }),
+    prisma.age_Groups.findUnique({ where: { name: "Nhóm 19 tuổi trở lên" } }),
   ]);
 
-  await prisma.categories.createMany({
-    data: [
-      { name: "Truyện tranh", age_group_id: thieu_nhi.id },
-      { name: "Khoa học", age_group_id: thieu_nhi.id },
-      { name: "Văn học", age_group_id: thanh_thieu_nien.id },
-      { name: "Kỹ năng sống", age_group_id: nguoi_lon.id },
-    ],
-    skipDuplicates: true,
-  });
+  const categoriesData = [
+    // Nhóm 0-6 tuổi
+    { name: "Sách mầm non", age_group_id: group06.id },
+    { name: "Sách ngoại văn mầm non", age_group_id: group06.id },
+
+    // Nhóm 7-12 tuổi
+    { name: "Truyện tranh thiếu nhi", age_group_id: group712.id },
+    { name: "Kiến thức thiếu nhi", age_group_id: group712.id },
+    { name: "Văn học thiếu nhi", age_group_id: group712.id },
+    { name: "Sách ngoại văn thiếu nhi", age_group_id: group712.id },
+
+    // Nhóm 13-19 tuổi
+    { name: "Truyện tranh teens", age_group_id: group1319.id },
+    { name: "Văn học teens", age_group_id: group1319.id },
+    { name: "Văn học lãng mạn", age_group_id: group1319.id },
+    { name: "Kiến thức teens", age_group_id: group1319.id },
+    { name: "Sách ngoại văn teens", age_group_id: group1319.id },
+
+    // Nhóm 19 tuổi trở lên
+    { name: "Văn học Việt Nam", age_group_id: group19plus.id },
+    { name: "Văn học nước ngoài", age_group_id: group19plus.id },
+    { name: "Tiểu sử hồi ký", age_group_id: group19plus.id },
+    { name: "Khoa học tự nhiên", age_group_id: group19plus.id },
+    { name: "Khoa học xã hội", age_group_id: group19plus.id },
+    { name: "Khoa học nhân văn", age_group_id: group19plus.id },
+    { name: "Công nghệ kĩ thuật", age_group_id: group19plus.id },
+    { name: "Thể thao nghệ thuật", age_group_id: group19plus.id },
+    { name: "Sách ngoại văn", age_group_id: group19plus.id },
+    { name: "Sách cổ sách quý", age_group_id: group19plus.id },
+  ];
+
+  for (const cat of categoriesData) {
+    const existing = await prisma.categories.findFirst({
+      where: { name: cat.name, age_group_id: cat.age_group_id },
+    });
+    if (!existing) {
+      await prisma.categories.create({
+        data: cat,
+      });
+    }
+  }
 
   // Admin account
   const password_hash = await bcrypt.hash("admin123", 10);
@@ -129,11 +168,11 @@ async function main() {
   // Sách mới mẫu nếu chưa có
   const newBooksCount = await prisma.new_Books.count();
   if (newBooksCount === 0) {
-    const vanHoc = await prisma.categories.findFirst({ where: { name: "Văn học" } });
+    const sampleCat = await prisma.categories.findFirst({ where: { name: "Văn học thiếu nhi" } }) || await prisma.categories.findFirst();
     const now = new Date();
     const currentMY = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 
-    if (coSo1 && vanHoc) {
+    if (coSo1 && sampleCat) {
       await prisma.new_Books.create({
         data: {
           title: "Hoàng Tử Bé",
@@ -147,7 +186,7 @@ async function main() {
           is_featured: true,
           skoolib_url: "https://skoolib.com/opac",
           location_id: coSo1.id,
-          category_id: vanHoc.id,
+          category_id: sampleCat.id,
         },
       });
 
@@ -164,7 +203,7 @@ async function main() {
           is_featured: false,
           skoolib_url: "https://skoolib.com/opac",
           location_id: coSo1.id,
-          category_id: vanHoc.id,
+          category_id: sampleCat.id,
         },
       });
     }

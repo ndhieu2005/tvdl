@@ -215,6 +215,7 @@ function MonthSection({ monthData }) {
 
 export default function NewBooksPage() {
   const [monthSections, setMonthSections] = useState([]);
+  const [ageGroups, setAgeGroups] = useState([]);
   const [categories, setCategories] = useState([]);
   const [locations, setLocations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -224,6 +225,7 @@ export default function NewBooksPage() {
 
   // Filter & Search states
   const [searchTerm, setSearchTerm] = useState(urlQuery);
+  const [selectedAgeGroupId, setSelectedAgeGroupId] = useState('');
   const [selectedCategoryId, setSelectedCategoryId] = useState('');
   const [selectedLocationId, setSelectedLocationId] = useState('');
 
@@ -233,23 +235,51 @@ export default function NewBooksPage() {
     }
   }, [urlQuery]);
 
-  // Fetch dữ liệu categories và locations
+  // Fetch dữ liệu ageGroups, categories và locations
   useEffect(() => {
     Promise.all([
+      api.get('/age-groups').catch(() => ({ data: { data: [] } })),
       api.get('/categories').catch(() => ({ data: { data: [] } })),
       api.get('/locations').catch(() => ({ data: { data: [] } })),
-    ]).then(([catRes, locRes]) => {
+    ]).then(([ageRes, catRes, locRes]) => {
+      setAgeGroups(ageRes.data.data || []);
       setCategories(catRes.data.data || []);
       setLocations(locRes.data.data || []);
     });
   }, []);
+
+  // Lọc danh sách thể loại theo độ tuổi đang chọn (nếu có)
+  const availableCategories = selectedAgeGroupId
+    ? categories.filter(
+        (cat) => String(cat.age_group?.id || cat.age_group_id) === String(selectedAgeGroupId)
+      )
+    : categories;
+
+  const handleAgeGroupChange = (e) => {
+    const nextAgeGroupId = e.target.value;
+    setSelectedAgeGroupId(nextAgeGroupId);
+    if (nextAgeGroupId && selectedCategoryId) {
+      const belongs = categories.some(
+        (c) =>
+          String(c.id) === String(selectedCategoryId) &&
+          String(c.age_group?.id || c.age_group_id) === String(nextAgeGroupId)
+      );
+      if (!belongs) {
+        setSelectedCategoryId('');
+      }
+    }
+  };
 
   // Fetch danh sách sách mới
   const fetchNewBooks = () => {
     setLoading(true);
     const params = {};
     if (searchTerm.trim()) params.q = searchTerm.trim();
-    if (selectedCategoryId) params.category_id = selectedCategoryId;
+    if (selectedCategoryId) {
+      params.category_id = selectedCategoryId;
+    } else if (selectedAgeGroupId) {
+      params.age_group_id = selectedAgeGroupId;
+    }
     if (selectedLocationId) params.location_id = selectedLocationId;
 
     api.get('/new-books', { params })
@@ -268,7 +298,7 @@ export default function NewBooksPage() {
       fetchNewBooks();
     }, 250);
     return () => clearTimeout(timer);
-  }, [searchTerm, selectedCategoryId, selectedLocationId]);
+  }, [searchTerm, selectedAgeGroupId, selectedCategoryId, selectedLocationId]);
 
   return (
     <div className="min-h-[calc(100vh-64px)] flex flex-col bg-white overflow-x-clip">
@@ -282,10 +312,10 @@ export default function NewBooksPage() {
             </h1>
           </div>
 
-          {/* Thanh tìm kiếm và Bộ lọc (1 hàng 3 ô giữ nguyên layout ban đầu) */}
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-3 sm:gap-4">
-            {/* Ô Tìm kiếm (chiếm 6 cột) */}
-            <div className="md:col-span-6 relative flex items-center">
+          {/* Thanh tìm kiếm và Bộ lọc: 4 ô Tìm kiếm | Độ tuổi | Thể loại | Cơ sở */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 sm:gap-4">
+            {/* Ô Tìm kiếm (4 cột) */}
+            <div className="sm:col-span-2 lg:col-span-4 relative flex items-center">
               <Search size={18} className="absolute left-3.5 text-gray-500 pointer-events-none" />
               <input
                 type="text"
@@ -305,15 +335,32 @@ export default function NewBooksPage() {
               )}
             </div>
 
-            {/* Ô Thể loại (chiếm 3 cột) */}
-            <div className="md:col-span-3 relative flex items-center">
+            {/* Ô Độ tuổi (3 cột) */}
+            <div className="sm:col-span-1 lg:col-span-3 relative flex items-center">
+              <select
+                value={selectedAgeGroupId}
+                onChange={handleAgeGroupChange}
+                className="w-full h-11 px-3.5 pr-8 bg-white border border-[#4B5563] text-sm text-[#2D2D2D] appearance-none focus:outline-none focus:border-[#1B3F8B] cursor-pointer rounded-none"
+              >
+                <option value="">Tất cả độ tuổi</option>
+                {ageGroups.map((ag) => (
+                  <option key={ag.id} value={ag.id}>
+                    {ag.name}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown size={18} className="absolute right-3 text-[#4B5563] pointer-events-none" />
+            </div>
+
+            {/* Ô Thể loại (3 cột) */}
+            <div className="sm:col-span-1 lg:col-span-3 relative flex items-center">
               <select
                 value={selectedCategoryId}
                 onChange={(e) => setSelectedCategoryId(e.target.value)}
                 className="w-full h-11 px-3.5 pr-8 bg-white border border-[#4B5563] text-sm text-[#2D2D2D] appearance-none focus:outline-none focus:border-[#1B3F8B] cursor-pointer rounded-none"
               >
                 <option value="">Tất cả thể loại</option>
-                {categories.map((cat) => (
+                {availableCategories.map((cat) => (
                   <option key={cat.id} value={cat.id}>
                     {cat.name}
                   </option>
@@ -322,14 +369,14 @@ export default function NewBooksPage() {
               <ChevronDown size={18} className="absolute right-3 text-[#4B5563] pointer-events-none" />
             </div>
 
-            {/* Ô Bộ lọc (chi nhánh / cơ sở) (chiếm 3 cột) */}
-            <div className="md:col-span-3 relative flex items-center">
+            {/* Ô Bộ lọc (chi nhánh / cơ sở) (2 cột) */}
+            <div className="sm:col-span-2 lg:col-span-2 relative flex items-center">
               <select
                 value={selectedLocationId}
                 onChange={(e) => setSelectedLocationId(e.target.value)}
                 className="w-full h-11 px-3.5 pr-8 bg-white border border-[#4B5563] text-sm text-[#2D2D2D] appearance-none focus:outline-none focus:border-[#1B3F8B] cursor-pointer rounded-none"
               >
-                <option value="">Bộ lọc</option>
+                <option value="">Tất cả cơ sở</option>
                 {locations.map((loc) => (
                   <option key={loc.id} value={loc.id}>
                     Cơ sở: {loc.name}
